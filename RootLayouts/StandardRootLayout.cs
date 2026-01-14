@@ -1,4 +1,6 @@
-﻿using System;
+﻿using MNGUI.Layouts;
+using MNGUI.GUIElements;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -6,7 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Vintagestory.API.Client;
 
-namespace RemoteTraderCheckMod.GUI.MNGui {
+namespace MNGUITest.MNGUI.RootLayouts {
     internal class StandardRootLayout {
         double fixedHeight;
         double scrollBarContentFixedY;
@@ -129,7 +131,7 @@ namespace RemoteTraderCheckMod.GUI.MNGui {
             //container.Bounds.CalcWorldBounds();
 
             var mainScrollBar = Composer.GetScrollbar("scroll-bar");
-            mainScrollBar.SetHeights((float)scrollBarBounds.OuterHeightInt, (float)(containerBounds.OuterHeight + GuiStyle.HalfPadding * 2));
+            mainScrollBar.SetHeights(scrollBarBounds.OuterHeightInt, (float)(containerBounds.OuterHeight + GuiStyle.HalfPadding * 2));
             scrollBarContentFixedY = container.Bounds.fixedY;
 
             return Composer;

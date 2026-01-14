@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 
-namespace RemoteTraderCheckMod.GUI.MNGui {
+namespace MNGUI.GUI.MNGui {
     internal class GuiStd {
         ICoreClientAPI capi;
         public GuiStd(ICoreClientAPI capi) {
