@@ -81,8 +81,11 @@ namespace MNGUI.RootLayouts {
 
             return elem as T;
         }
-
         public GuiComposer Layout(ICoreClientAPI capi, GuiDialogBlockEntity gui) {
+            return Layout(capi, gui, nameof(gui) + gui.BlockEntityPosition);
+        }
+
+        public GuiComposer Layout(ICoreClientAPI capi, GuiDialogGeneric gui, string dialogName) {
             var dialogBounds = ElementStdBounds.AutosizedMainDialog.WithAlignment(EnumDialogArea.CenterMiddle);
 
             var bgBounds = ElementBounds.Fill.WithFixedPadding(GuiStyle.ElementToDialogPadding);
@@ -106,7 +109,7 @@ namespace MNGUI.RootLayouts {
             containerBounds.Name = "container";
             ContainerBounds = containerBounds;
 
-            Composer = capi.Gui.CreateCompo(nameof(gui) + gui.BlockEntityPosition, dialogBounds)
+            Composer = capi.Gui.CreateCompo(dialogName, dialogBounds)
                 .AddShadedDialogBG(bgBounds)
                 .AddDialogTitleBar(gui.DialogTitle, OnTitleBarCloseInternal)
                 .BeginChildElements(bgBounds)

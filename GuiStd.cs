@@ -14,7 +14,7 @@ namespace MNGUI.GUI.MNGui {
             this.capi = capi;
         }
 
-        public GuiElementStaticText StandardTextAutoBoxSize(
+        public GuiElementStaticText TextAutoBoxSize(
             string text,
             EnumTextOrientation orientation = EnumTextOrientation.Left,
             CairoFont font = null

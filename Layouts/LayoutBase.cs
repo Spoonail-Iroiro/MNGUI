@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Vintagestory.API.Client;
 
 namespace MNGUI.Layouts;
+
 public class LayoutBase {
 
     public virtual void Layout(MNGuiElementContainer container) {
