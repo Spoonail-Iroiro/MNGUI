@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Vintagestory.API.Client;
 
-namespace MNGUITest.MNGUI.RootLayouts {
+namespace MNGUI.RootLayouts {
     internal class StandardRootLayout {
         double fixedHeight;
         double scrollBarContentFixedY;
