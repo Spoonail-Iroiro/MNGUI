@@ -8,9 +8,10 @@ using System.Text;
 using System.Threading.Tasks;
 using Vintagestory.API.Client;
 using Vintagestory;
+using MNGUITest;
 
 namespace MNGUI.RootLayouts {
-    internal class StandardRootLayout {
+    public class StandardRootLayout {
         double fixedHeight;
         double scrollBarContentFixedY;
 
@@ -105,7 +106,7 @@ namespace MNGUI.RootLayouts {
             scrollBarBounds.Name = "bounds-scroll-bar";
             scrollBarBounds.RightOf(insetBounds, 3);
 
-            var clipBounds = insetBounds.ForkContainingChild(GuiStyle.HalfPadding, GuiStyle.HalfPadding, GuiStyle.HalfPadding, GuiStyle.HalfPadding); ;
+            var clipBounds = insetBounds.ForkContainingChild(GuiStyle.HalfPadding, GuiStyle.HalfPadding, GuiStyle.HalfPadding, GuiStyle.HalfPadding);
             clipBounds.Name = "bounds-clip";
             clipBounds.horizontalSizing = ElementSizing.FitToChildren;
             //insetBounds.WithChild(clipBounds);
@@ -116,9 +117,9 @@ namespace MNGUI.RootLayouts {
             ContainerBounds = containerBounds;
 
             Composer = capi.Gui.CreateCompo(dialogName, dialogBounds)
-                .AddDialogTitleBar(gui.DialogTitle, OnTitleBarCloseInternal)
                 .AddShadedDialogBG(bgBounds)
-                .BeginChildElements() // Begin bgBounds child
+                .AddDialogTitleBar(gui.DialogTitle, OnTitleBarCloseInternal)
+                .BeginChildElements(bgBounds) // Begin bgBounds child
                     .AddInset(insetBounds, 3)
                     .BeginChildElements() // Begin insetBounds child
                         .BeginClip(clipBounds) // Begin clipBounds child (auto)
