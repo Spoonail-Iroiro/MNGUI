@@ -7,6 +7,7 @@ using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 using Vintagestory.API.Client;
+using Vintagestory;
 
 namespace MNGUI.RootLayouts {
     internal class StandardRootLayout {
@@ -96,7 +97,7 @@ namespace MNGUI.RootLayouts {
             var insetBounds = ElementBounds.Fixed(0, GuiStyle.TitleBarHeight, 10, fixedHeight + GuiStyle.HalfPadding * 2);
             insetBounds.Name = "bounds-inset";
             insetBounds.horizontalSizing = ElementSizing.FitToChildren;
-            bgBounds.WithChild(insetBounds);
+            //bgBounds.WithChild(insetBounds);
 
             var scrollBarBounds = insetBounds.CopyOffsetedSibling()
                 .WithFixedWidth(20)
@@ -105,8 +106,9 @@ namespace MNGUI.RootLayouts {
             scrollBarBounds.RightOf(insetBounds, 3);
 
             var clipBounds = insetBounds.ForkContainingChild(GuiStyle.HalfPadding, GuiStyle.HalfPadding, GuiStyle.HalfPadding, GuiStyle.HalfPadding); ;
+            clipBounds.Name = "bounds-clip";
             clipBounds.horizontalSizing = ElementSizing.FitToChildren;
-            insetBounds.WithChild(clipBounds);
+            //insetBounds.WithChild(clipBounds);
 
             var containerBounds = clipBounds.ForkContainingChild();
             containerBounds.BothSizing = ElementSizing.FitToChildren;
@@ -114,13 +116,15 @@ namespace MNGUI.RootLayouts {
             ContainerBounds = containerBounds;
 
             Composer = capi.Gui.CreateCompo(dialogName, dialogBounds)
-                .AddShadedDialogBG(bgBounds)
                 .AddDialogTitleBar(gui.DialogTitle, OnTitleBarCloseInternal)
-                .BeginChildElements(bgBounds)
+                .AddShadedDialogBG(bgBounds)
+                .BeginChildElements() // Begin bgBounds child
                     .AddInset(insetBounds, 3)
-                    .BeginClip(clipBounds)
-                        .AddInteractiveElement(new MNGuiElementContainer(capi, containerBounds), "scroll-content")
-                    .EndClip()
+                    .BeginChildElements() // Begin insetBounds child
+                        .BeginClip(clipBounds) // Begin clipBounds child (auto)
+                            .AddInteractiveElement(new MNGuiElementContainer(capi, containerBounds), "scroll-content")
+                        .EndClip()
+                    .EndChildElements()
                     .AddVerticalScrollbar(OnNewScrollbarvalue, scrollBarBounds, "scroll-bar")
                 .EndChildElements();
 
@@ -132,6 +136,9 @@ namespace MNGUI.RootLayouts {
 
             container.Bounds.CalcWorldBounds();
             ChildLayout.BeforeComposerCompose();
+
+            var boundsHie = DebugUtil.GetBoundsTree(Composer.Bounds);
+            capi.Logger.Event(boundsHie);
 
             Composer.Compose();
 
