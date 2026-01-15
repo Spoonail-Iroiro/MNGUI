@@ -10,5 +10,8 @@ internal class SingleLayout : LayoutBase {
     public SingleLayout(GuiElement guiElement, string name = null) {
         GuiElement = guiElement;
         Name = name;
+        if (name != null) {
+            GuiElement.Bounds.Name = $"bounds-{name}";
+        }
     }
 }

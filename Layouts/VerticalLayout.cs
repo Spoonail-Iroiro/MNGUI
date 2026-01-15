@@ -55,6 +55,10 @@ internal class VerticalLayout : LayoutBase {
                 elem = sl.GuiElement;
 
                 container.Add(elem);
+
+                // Measure
+                elem.BeforeCalcBounds();
+                elem.Bounds.CalcWorldBounds();
             }
             else {
                 var childContainer = new MNGuiElementContainer(capi, ElementBounds.Fixed(0, 0, 400, 400).WithSizing(ElementSizing.FitToChildren));
@@ -63,11 +67,17 @@ internal class VerticalLayout : LayoutBase {
                 container.Add(elem);
 
                 layout.Layout(childContainer);
+                // Measure
+                elem.BeforeCalcBounds();
                 elem.Bounds.CalcWorldBounds();
             }
 
+
+            // Arrange
             if (prevBound != null) {
+                // Relatively connect (so, it's okay to arrange children before parents
                 ConnectBoundsUnderWithInterval(elem.Bounds, prevBound);
+                elem.Bounds.CalcWorldBounds();
             }
 
             prevBound = elem.Bounds;

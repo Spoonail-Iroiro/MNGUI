@@ -57,7 +57,8 @@ internal class HorizontalLayout : LayoutBase {
                 elem = sl.GuiElement;
 
                 container.Add(elem);
-
+                elem.BeforeCalcBounds();
+                elem.Bounds.CalcWorldBounds();
             }
             else {
                 var childContainer = new MNGuiElementContainer(capi, ElementBounds.Fixed(0, 0, 100, 100).WithSizing(ElementSizing.FitToChildren));
@@ -67,6 +68,8 @@ internal class HorizontalLayout : LayoutBase {
 
                 layout.Layout(childContainer);
 
+                elem.BeforeCalcBounds();
+                elem.Bounds.CalcWorldBounds();
             }
 
             if (prevBound != null) {

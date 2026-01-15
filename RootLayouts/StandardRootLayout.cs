@@ -87,17 +87,21 @@ namespace MNGUI.RootLayouts {
 
         public GuiComposer Layout(ICoreClientAPI capi, GuiDialogGeneric gui, string dialogName) {
             var dialogBounds = ElementStdBounds.AutosizedMainDialog.WithAlignment(EnumDialogArea.CenterMiddle);
+            dialogBounds.Name = "bounds-dialog";
 
             var bgBounds = ElementBounds.Fill.WithFixedPadding(GuiStyle.ElementToDialogPadding);
+            bgBounds.Name = "bounds-bg";
             bgBounds.BothSizing = ElementSizing.FitToChildren;
 
             var insetBounds = ElementBounds.Fixed(0, GuiStyle.TitleBarHeight, 10, fixedHeight + GuiStyle.HalfPadding * 2);
+            insetBounds.Name = "bounds-inset";
             insetBounds.horizontalSizing = ElementSizing.FitToChildren;
             bgBounds.WithChild(insetBounds);
 
             var scrollBarBounds = insetBounds.CopyOffsetedSibling()
                 .WithFixedWidth(20)
                 .WithSizing(ElementSizing.Fixed);
+            scrollBarBounds.Name = "bounds-scroll-bar";
             scrollBarBounds.RightOf(insetBounds, 3);
 
             var clipBounds = insetBounds.ForkContainingChild(GuiStyle.HalfPadding, GuiStyle.HalfPadding, GuiStyle.HalfPadding, GuiStyle.HalfPadding); ;
