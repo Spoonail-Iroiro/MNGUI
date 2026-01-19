@@ -36,6 +36,10 @@ internal class HorizontalLayout : LayoutBase {
         return Add(elementAsLayout);
     }
 
+    public HorizontalLayout Add(Func<GuiElement> createElement, string name = null) {
+        return Add(createElement(), name);
+    }
+
     public HorizontalLayout Add(LayoutBase layout) {
         if (Alignment == HorizontalLayoutAlignment.Right && ChildLayouts.Count >= 1) throw new InvalidOperationException($"HorizontalLayout now supports one element when Alignment == Right");
         ChildLayouts.Add(layout);

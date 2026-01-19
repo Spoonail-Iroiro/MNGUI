@@ -37,6 +37,10 @@ internal class VerticalLayout : LayoutBase {
         return this;
     }
 
+    public VerticalLayout Add(Func<GuiElement> createElement, string name = null) {
+        return Add(createElement(), name);
+    }
+
     public VerticalLayout AddVerticalSpace(double length) {
         return Add(new GuiElementParent(capi, ElementBounds.Fixed(0, 0, 1, length)));
     }

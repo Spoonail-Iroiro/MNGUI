@@ -17,8 +17,3 @@ public class LayoutBase {
 
     }
 }
-
-internal record class ComposeResult(
-    GuiElement BottomElement,
-    GuiElement RightElement
-);
