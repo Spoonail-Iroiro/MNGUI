@@ -10,7 +10,7 @@ namespace MNGUI.Layouts;
 
 public class LayoutBase {
 
-    public virtual void Layout(MNGuiElementContainer container) {
+    public virtual void Layout(OldMNGuiElementContainer container) {
     }
 
     public virtual void BeforeComposerCompose() {

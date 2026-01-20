@@ -51,7 +51,7 @@ internal class VerticalLayout : LayoutBase {
         return this;
     }
 
-    public override void Layout(MNGuiElementContainer container) {
+    public override void Layout(OldMNGuiElementContainer container) {
         ElementBounds prevBound = null;
         foreach (LayoutBase layout in ChildLayouts) {
             GuiElement elem = null;
@@ -65,7 +65,7 @@ internal class VerticalLayout : LayoutBase {
                 elem.Bounds.CalcWorldBounds();
             }
             else {
-                var childContainer = new MNGuiElementContainer(capi, ElementBounds.Fixed(0, 0, 400, 400).WithSizing(ElementSizing.FitToChildren));
+                var childContainer = new OldMNGuiElementContainer(capi, ElementBounds.Fixed(0, 0, 400, 400).WithSizing(ElementSizing.FitToChildren));
                 elem = childContainer;
 
                 container.Add(elem);

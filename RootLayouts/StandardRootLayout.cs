@@ -123,7 +123,7 @@ namespace MNGUI.RootLayouts {
                     .AddInset(insetBounds, 3)
                     .BeginChildElements() // Begin insetBounds child
                         .BeginClip(clipBounds) // Begin clipBounds child (auto)
-                            .AddInteractiveElement(new MNGuiElementContainer(capi, containerBounds), "scroll-content")
+                            .AddInteractiveElement(new OldMNGuiElementContainer(capi, containerBounds), "scroll-content")
                         .EndClip()
                     .EndChildElements()
                     .AddVerticalScrollbar(OnNewScrollbarvalue, scrollBarBounds, "scroll-bar")
@@ -131,15 +131,15 @@ namespace MNGUI.RootLayouts {
 
             // Scroll bar setting
 
-            var container = Composer.GetElement("scroll-content") as MNGuiElementContainer;
+            var container = Composer.GetElement("scroll-content") as OldMNGuiElementContainer;
 
             ChildLayout.Layout(container);
 
             container.Bounds.CalcWorldBounds();
             ChildLayout.BeforeComposerCompose();
 
-            var boundsHie = DebugUtil.GetBoundsTree(Composer.Bounds);
-            capi.Logger.Event(boundsHie);
+            //var boundsHie = DebugUtil.GetBoundsTree(Composer.Bounds);
+            //capi.Logger.Event(boundsHie);
 
             Composer.Compose();
 
@@ -153,7 +153,7 @@ namespace MNGUI.RootLayouts {
         }
 
         public void UpdateContainerBounds() {
-            var container = Composer.GetElement("scroll-content") as MNGuiElementContainer;
+            var container = Composer.GetElement("scroll-content") as OldMNGuiElementContainer;
             container.Bounds.CalcWorldBounds();
             var mainScrollBar = Composer.GetScrollbar("scroll-bar");
             mainScrollBar.SetHeights((float)mainScrollBar.Bounds.OuterHeight, (float)(container.Bounds.OuterHeight + GuiStyle.HalfPadding * 2));
@@ -168,7 +168,7 @@ namespace MNGUI.RootLayouts {
         }
 
         void OnNewScrollbarvalue(float value) {
-            var container = Composer.GetElement("scroll-content") as MNGuiElementContainer;
+            var container = Composer.GetElement("scroll-content") as OldMNGuiElementContainer;
             container.Bounds.fixedY = scrollBarContentFixedY - value;
             container.Bounds.CalcWorldBounds();
         }

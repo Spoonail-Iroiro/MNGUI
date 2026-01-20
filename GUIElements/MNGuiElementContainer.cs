@@ -1,47 +1,31 @@
-﻿using System;
+﻿using Cairo;
+using System;
 using System.Collections.Generic;
-using Cairo;
-using Vintagestory.API.MathTools;
+using System.Linq;
 using Vintagestory.API.Client;
+using Vintagestory.API.MathTools;
 
 namespace MNGUI.GUIElements;
 
 public class MNGuiElementContainer : GuiElement {
-    /// <summary>
-    /// The cells in the list.  See IGuiElementCell for how it's supposed to function.
-    /// </summary>
-    public List<GuiElement> Elements = new List<GuiElement>();
-
-    /// <summary>
-    /// the space between the cells.  Default: 10
-    /// </summary>
-    public int unscaledCellSpacing = 10;
-
-    /// <summary>
-    /// The padding on the vertical axis of the cell.  Default: 2
-    /// </summary>
-    public int UnscaledCellVerPadding = 4;
-
-    /// <summary>
-    /// The padding on the horizontal axis of the cell.  Default: 7
-    /// </summary>
-    public int UnscaledCellHorPadding = 7;
-
-
-    LoadedTexture listTexture;
+    LoadedTexture contentTexture;
 
     ElementBounds insideBounds;
 
+    bool renderFocusHighlight;
 
-    int childFocusIndex;
+    public List<GuiElement> Elements = new List<GuiElement>();
 
-    /// <summary>
-    /// Creates a new list in the current GUI.
-    /// </summary>
-    /// <param name="capi">The Client API.</param>
-    /// <param name="bounds">The bounds of the list.</param>
+    public int unscaledCellSpacing = 10;
+
+    public bool Tabbable = false;
+
+    public override bool Focusable { get { return Tabbable; } }
+
+    protected int currentFocusableElementKey;
+
     public MNGuiElementContainer(ICoreClientAPI capi, ElementBounds bounds) : base(capi, bounds) {
-        listTexture = new LoadedTexture(capi);
+        contentTexture = new LoadedTexture(capi);
         bounds.IsDrawingSurface = true;
     }
 
@@ -53,22 +37,26 @@ public class MNGuiElementContainer : GuiElement {
         CalcTotalHeight();
     }
 
-    internal void ReloadCells() {
+    internal void ReloadContent() {
         CalcTotalHeight();
         ComposeList();
     }
 
-    /// <summary>
-    /// Calculates the total height for the list.
-    /// </summary>
     public void CalcTotalHeight() {
-        double height = 0;
+        // TODO: CalcTotalHeight
         foreach (GuiElement cell in Elements) {
             cell.BeforeCalcBounds();
-            height = Math.Max(height, cell.Bounds.fixedY + cell.Bounds.fixedHeight);
         }
 
-        Bounds.fixedHeight = height + unscaledCellSpacing;
+        Bounds.CalcWorldBounds();
+
+        //double height = 0;
+        //foreach (GuiElement cell in Elements) {
+        //    cell.BeforeCalcBounds();
+        //    height = Math.Max(height, cell.Bounds.fixedY + cell.Bounds.fixedHeight);
+        //}
+
+        //Bounds.fixedHeight = height + unscaledCellSpacing;
     }
 
     public override void ComposeElements(Context ctx, ImageSurface surface) {
@@ -78,6 +66,7 @@ public class MNGuiElementContainer : GuiElement {
         Bounds.CalcWorldBounds();
         ComposeList();
     }
+
     void ComposeList() {
         ImageSurface surface = new ImageSurface(Format.Argb32, (int)Bounds.OuterWidth, (int)Bounds.OuterHeight);
         Context ctx = genContext(surface);
@@ -89,95 +78,143 @@ public class MNGuiElementContainer : GuiElement {
             elem.ComposeElements(ctx, surface);
         }
 
-        generateTexture(surface, ref listTexture);
+        generateTexture(surface, ref contentTexture);
 
         ctx.Dispose();
         surface.Dispose();
     }
 
+    public GuiElement? CurrentTabIndexElement {
+        get {
+            foreach (GuiElement element in Elements) {
+                if (element.Focusable && element.HasFocus) {
+                    return element;
+                }
+            }
+
+            return null;
+        }
+    }
+
+    public GuiElement? FirstTabbableElement {
+        get {
+            foreach (GuiElement element in Elements) {
+                if (element.Focusable) {
+                    return element;
+                }
+            }
+
+            return null;
+        }
+    }
+
+    public int MaxTabIndex {
+        get {
+            int tabIndex = -1;
+            foreach (GuiElement element in Elements) {
+                if (element.Focusable) {
+                    tabIndex = Math.Max(tabIndex, element.TabIndex);
+                }
+            }
+
+            return tabIndex;
+        }
+    }
+
+    public bool FocusElement(int tabIndex) {
+        GuiElement newFocusedElement = null;
+
+        foreach (GuiElement element in Elements) {
+            if (element.Focusable && element.TabIndex == tabIndex) {
+                newFocusedElement = element;
+                break;
+            }
+        }
+
+        if (newFocusedElement != null) {
+            UnfocusOwnElementsExcept(newFocusedElement);
+            newFocusedElement.OnFocusGained();
+            return true;
+        }
+
+        return false;
+    }
+
+    public void UnfocusOwnElements() {
+        UnfocusOwnElementsExcept(null);
+    }
+
+    /// <summary>
+    /// Unfocuses all elements except one specific element.
+    /// </summary>
+    /// <param name="elem">The element to remain in focus.</param>
+    public void UnfocusOwnElementsExcept(GuiElement elem) {
+        foreach (GuiElement element in Elements) {
+            if (element == elem) continue;
+
+            if (element.Focusable && element.HasFocus) {
+                element.OnFocusLost();
+            }
+        }
+    }
+
     public void Clear() {
         Elements.Clear();
         Bounds.ChildBounds.Clear();
+        currentFocusableElementKey = 0;
     }
 
-    /// <summary>
-    /// Adds a cell to the list.
-    /// </summary>
-    /// <param name="elem">The cell to add.</param>
-    /// <param name="afterPosition">The position of the cell to add after.  (Default: -1)</param>
-    public void Add(GuiElement elem, int afterPosition = -1) {
-        if (afterPosition == -1) {
-            Elements.Add(elem);
+    public void Add(GuiElement elem) {
+        Elements.Add(elem);
+
+        if (elem.Focusable) {
+            elem.TabIndex = currentFocusableElementKey++;
         }
         else {
-            Elements.Insert(afterPosition, elem);
+            elem.TabIndex = -1;
         }
 
         elem.InsideClipBounds = InsideClipBounds;
-
-        Bounds.WithChild(elem.Bounds);
     }
 
-    /// <summary>
-    /// Removes a cell at a specified position.
-    /// </summary>
-    /// <param name="position">The position of the cell to remove.</param>
-    public void RemoveCell(int position) {
-        Elements.RemoveAt(position);
+    public void SetChildBound(ElementBounds bounds) {
+        Bounds.ChildBounds.Clear();
+        Bounds.ChildBounds.Add(bounds);
+        bounds.ParentBounds = Bounds;
     }
 
     public override void OnMouseUp(ICoreClientAPI api, MouseEvent args) {
-        foreach (GuiElement elem in Elements) {
-            elem.OnMouseUp(api, args);
+        foreach (GuiElement element in Elements) {
+            element.OnMouseUp(api, args);
         }
 
-
-        //int nowFocusIndex = -1;
-        //int i = 0;
-        //foreach (GuiElement element in Elements) {
-        //    element.OnMouseUp(api, args);
-        //    if (args.Handled) {
-        //        nowFocusIndex = i;
-        //        break;
-        //    }
-        //    i++;
-        //}
-
-        //if (childFocusIndex >= 0 && childFocusIndex < Elements.Count && nowFocusIndex != childFocusIndex) {
-        //    Elements[childFocusIndex].OnFocusLost();
-        //}
-        //if (nowFocusIndex >= 0) {
-
-        //    Elements[nowFocusIndex].OnFocusGained();
-        //}
-        //childFocusIndex = nowFocusIndex;
-
-
-        //if (!args.Handled) base.OnMouseUp(api, args);
-
+        if (!args.Handled) base.OnMouseUp(api, args);
     }
 
     public override void OnMouseDown(ICoreClientAPI api, MouseEvent args) {
-        int nowFocusIndex = -1;
-        int i = 0;
+        bool beforeHandled = false;
+        bool nowHandled = false;
+        renderFocusHighlight = false;
 
         foreach (GuiElement element in Elements) {
-            element.OnMouseDown(api, args);
-            if (args.Handled && nowFocusIndex < 0) {
-                nowFocusIndex = i;
+            if (!beforeHandled) {
+                element.OnMouseDown(api, args);
+                nowHandled = args.Handled;
             }
-            i++;
-        }
 
-        if (childFocusIndex >= 0 && nowFocusIndex != childFocusIndex) {
-            Elements[childFocusIndex].OnFocusLost();
-        }
-        if (nowFocusIndex >= 0) {
+            if (!beforeHandled && nowHandled) {
+                if (element.Focusable && !element.HasFocus) {
+                    element.OnFocusGained();
+                }
+            }
+            else {
+                if (element.Focusable && element.HasFocus) {
+                    element.OnFocusLost();
+                }
+            }
 
-            Elements[nowFocusIndex].OnFocusGained();
+            beforeHandled = nowHandled;
         }
-        childFocusIndex = nowFocusIndex;
-
 
         if (!args.Handled) base.OnMouseDown(api, args);
     }
@@ -186,56 +223,157 @@ public class MNGuiElementContainer : GuiElement {
     public override void OnMouseMove(ICoreClientAPI api, MouseEvent args) {
         foreach (GuiElement element in Elements) {
             element.OnMouseMove(api, args);
+            if (args.Handled) {
+                break;
+            }
         }
 
         if (!args.Handled) base.OnMouseMove(api, args);
     }
 
+
+    bool tabPressed = false;
+    bool shiftTabPressed = false;
     public override void OnKeyDown(ICoreClientAPI api, KeyEvent args) {
+        tabPressed = args.KeyCode == (int)GlKeys.Tab;
+        shiftTabPressed = tabPressed && args.ShiftPressed;
+
+        if (!HasFocus) return;
+
         base.OnKeyDown(api, args);
 
-        if (childFocusIndex >= 0) {
-            Elements[childFocusIndex].OnKeyDown(api, args);
+        foreach (GuiElement element in Elements) {
+            element.OnKeyDown(api, args);
+            if (args.Handled) break;
+        }
+
+        if (!args.Handled && args.KeyCode == (int)GlKeys.Tab && Tabbable) {
+            renderFocusHighlight = true;
+            var elem = CurrentTabIndexElement;
+            if (elem != null && MaxTabIndex > 0) {
+                int dir = args.ShiftPressed ? -1 : 1;
+                int tb = elem.TabIndex + dir;
+                if (tb < 0 || tb > MaxTabIndex || args.CtrlPressed) return;
+                FocusElement(tb);
+                args.Handled = true;
+            }
+            else if (MaxTabIndex > 0) {
+                FocusElement(args.ShiftPressed ? GameMath.Mod(-1, MaxTabIndex + 1) : 0);
+                args.Handled = true;
+            }
+        }
+
+        // Hardcoded element class type :/
+        if (!args.Handled && (args.KeyCode == (int)GlKeys.Enter || args.KeyCode == (int)GlKeys.KeypadEnter) && CurrentTabIndexElement is GuiElementEditableTextBase) {
+            UnfocusOwnElementsExcept(null);
         }
     }
+
+    public override void OnKeyUp(ICoreClientAPI api, KeyEvent args) {
+        tabPressed = false;
+        shiftTabPressed = false;
+
+        if (!HasFocus) return;
+
+        base.OnKeyUp(api, args);
+
+        foreach (GuiElement element in Elements) {
+            element.OnKeyUp(api, args);
+            if (args.Handled) break;
+        }
+    }
+
     public override void OnKeyPress(ICoreClientAPI api, KeyEvent args) {
+        if (!HasFocus) return;
+
         base.OnKeyPress(api, args);
 
-        if (childFocusIndex >= 0) {
-            Elements[childFocusIndex].OnKeyPress(api, args);
+        foreach (GuiElement element in Elements) {
+            element.OnKeyPress(api, args);
+            if (args.Handled) break;
         }
     }
 
     public override void OnMouseWheel(ICoreClientAPI api, MouseWheelEventArgs args) {
         if (!Bounds.ParentBounds.PointInside(api.Input.MouseX, api.Input.MouseY)) return;
 
+        // Prefer an element that is currently hovered 
+        foreach (var element in Elements) {
+            if (element.IsPositionInside(api.Input.MouseX, api.Input.MouseY)) {
+                element.OnMouseWheel(api, args);
+            }
 
-        int dx = api.Input.MouseX - (int)Bounds.absX;
-        int dy = api.Input.MouseY - (int)Bounds.absY;
-
+            if (args.IsHandled) return;
+        }
 
         foreach (GuiElement element in Elements) {
-            Vec2d pos = element.Bounds.PositionInside(dx, dy);
             element.OnMouseWheel(api, args);
+            if (args.IsHandled) break;
         }
+    }
+
+    public override void OnFocusGained() {
+        base.OnFocusGained();
+
+        if (CurrentTabIndexElement != null) return;
+
+        renderFocusHighlight = tabPressed;
+        if (shiftTabPressed) FocusElement(MaxTabIndex);
+        else FocusElement(FirstTabbableElement.TabIndex);
+    }
+
+    public override void OnFocusLost() {
+        base.OnFocusLost();
+
+        renderFocusHighlight = false;
+        UnfocusOwnElements();
     }
 
 
     public override void RenderInteractiveElements(float deltaTime) {
-        api.Render.Render2DTexturePremultipliedAlpha(listTexture.TextureId, Bounds);
+        api.Render.Render2DTexturePremultipliedAlpha(contentTexture.TextureId, Bounds);
 
+        MouseOverCursor = null;
         foreach (GuiElement element in Elements) {
             element.RenderInteractiveElements(deltaTime);
+
+            if (element.IsPositionInside(api.Input.MouseX, api.Input.MouseY)) {
+                MouseOverCursor = element.MouseOverCursor;
+            }
+        }
+
+        ElementBounds tempClipBounds;
+        foreach (GuiElement element in Elements) {
+            // Seperate due to clipping
+            if (element.HasFocus && renderFocusHighlight) {
+                if (InsideClipBounds != null) {
+                    tempClipBounds = element.InsideClipBounds;
+                    element.InsideClipBounds = null;
+                    element.RenderFocusOverlay(deltaTime);
+                    element.InsideClipBounds = tempClipBounds;
+                }
+                else {
+                    element.RenderFocusOverlay(deltaTime);
+                }
+            }
         }
     }
 
     public override void Dispose() {
         base.Dispose();
-        listTexture.Dispose();
+        contentTexture.Dispose();
 
         foreach (var val in Elements) {
             val.Dispose();
         }
     }
 
+    public override void RenderBoundsDebug() {
+        base.RenderBoundsDebug();
+        foreach (var elem in Elements) {
+            elem.RenderBoundsDebug();
+        }
+    }
+
 }
+

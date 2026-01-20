@@ -22,7 +22,7 @@ internal class HorizontalLayout : LayoutBase {
 
     public List<LayoutBase> ChildLayouts { get; private set; } = new();
 
-    public MNGuiElementContainer ThisContainer { get; private set; }
+    public OldMNGuiElementContainer ThisContainer { get; private set; }
 
     public HorizontalLayout(ICoreClientAPI capi, int interval = 0, HorizontalLayoutAlignment alignment = HorizontalLayoutAlignment.Left) {
         this.capi = capi;
@@ -51,7 +51,7 @@ internal class HorizontalLayout : LayoutBase {
         return Add(new GuiElementParent(capi, ElementBounds.Fixed(0, 0, length, 1)));
     }
 
-    public override void Layout(MNGuiElementContainer container) {
+    public override void Layout(OldMNGuiElementContainer container) {
         ThisContainer = container;
         ElementBounds prevBound = null;
 
@@ -65,7 +65,7 @@ internal class HorizontalLayout : LayoutBase {
                 elem.Bounds.CalcWorldBounds();
             }
             else {
-                var childContainer = new MNGuiElementContainer(capi, ElementBounds.Fixed(0, 0, 100, 100).WithSizing(ElementSizing.FitToChildren));
+                var childContainer = new OldMNGuiElementContainer(capi, ElementBounds.Fixed(0, 0, 100, 100).WithSizing(ElementSizing.FitToChildren));
                 elem = childContainer;
 
                 container.Add(elem);
