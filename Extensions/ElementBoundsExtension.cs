@@ -14,6 +14,9 @@ internal static class ElementBoundsExtension {
         refBounds.CalcWorldBounds();
         // Hacky, make it (absFixedX + OuterWidth + leftSpacing / scale) after scaled
         elementBounds.fixedX = refBounds.absFixedX * 1.0 / RuntimeEnv.GUIScale + refBounds.OuterWidth * 1.0 / RuntimeEnv.GUIScale + leftSpacing;
+
+        // TODO: This SHOULD be the same to one above... test it, and apply it to the under one too
+        //elementBounds.fixedX = refBounds.fixedX + (refBounds.fixedWidth + 2.0 * refBounds.fixedPaddingX) + leftSpacing;
     }
 
     public static void FitToChildrenFixedUnder(this ElementBounds elementBounds, ElementBounds refBounds, double upSpacing = 0.0) {
