@@ -18,7 +18,7 @@ public class MNGuiElementContainer : GuiElement {
 
     public int unscaledCellSpacing = 10;
 
-    public bool Tabbable = true;
+    public bool Tabbable = false;
 
     public override bool Focusable { get { return Tabbable; } }
 
@@ -162,6 +162,7 @@ public class MNGuiElementContainer : GuiElement {
         Elements.Clear();
         Bounds.ChildBounds.Clear();
         currentFocusableElementKey = 0;
+        Tabbable = false;
     }
 
     public void Add(GuiElement elem) {
@@ -169,6 +170,7 @@ public class MNGuiElementContainer : GuiElement {
 
         if (elem.Focusable) {
             elem.TabIndex = currentFocusableElementKey++;
+            Tabbable = true;
         }
         else {
             elem.TabIndex = -1;
@@ -179,8 +181,9 @@ public class MNGuiElementContainer : GuiElement {
 
     public void SetChildBound(ElementBounds bounds) {
         Bounds.ChildBounds.Clear();
-        Bounds.ChildBounds.Add(bounds);
-        bounds.ParentBounds = Bounds;
+        Bounds.WithChild(bounds);
+        //Bounds.ChildBounds.Add(bounds);
+        //bounds.ParentBounds = Bounds;
     }
 
     public override void OnMouseUp(ICoreClientAPI api, MouseEvent args) {

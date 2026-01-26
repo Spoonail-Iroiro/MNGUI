@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Vintagestory.API.Client;
 using Vintagestory.Client.NoObf;
 using MNGUI.GUIElements.Layout;
+using Vintagestory.API.Config;
 
 namespace MNGUI.Layouts;
 
@@ -91,6 +92,13 @@ internal class VerticalLayout : LenearLayoutBase {
     }
 
     public override void Arrange() {
+        // For testing but might help implementing stertch/fill element layout?
+        //var fixedHeight = Bounds!.absInnerHeight / RuntimeEnv.GUIScale;
+        //Bounds!.fixedHeight = fixedHeight + 20;
+        //Bounds.verticalSizing = ElementSizing.Fixed;
+        //Bounds!.fixedHeight += 20;
+        //Bounds.verticalSizing = ElementSizing.Fixed;
+
         // Todo: align to bottom
         foreach (LayoutBase layout in ChildLayouts) {
             layout.Arrange();

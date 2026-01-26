@@ -19,5 +19,12 @@ public class GuiElementDebugVerticalLayout : GuiElement {
         Bounds.CalcWorldBounds();
     }
 
+    // Never respond to mouse event
+    public override void OnMouseDown(ICoreClientAPI api, MouseEvent mouse) {
+    }
+
+    public override void OnMouseUp(ICoreClientAPI api, MouseEvent args) {
+    }
+
 
 }
