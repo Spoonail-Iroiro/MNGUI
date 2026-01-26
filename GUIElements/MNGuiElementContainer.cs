@@ -18,7 +18,7 @@ public class MNGuiElementContainer : GuiElement {
 
     public int unscaledCellSpacing = 10;
 
-    public bool Tabbable = false;
+    public bool Tabbable = true;
 
     public override bool Focusable { get { return Tabbable; } }
 
