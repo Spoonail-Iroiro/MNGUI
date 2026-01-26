@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Vintagestory.API.Client;
 using Vintagestory.Client.NoObf;
-using MNGUITest.MNGUI.GUIElements.Layout;
+using MNGUI.GUIElements.Layout;
 
 namespace MNGUI.Layouts;
 
@@ -44,55 +44,50 @@ internal class VerticalLayout : LenearLayoutBase {
     }
 
     protected override void MeasureInternal() {
+        var thisBounds = ElementBounds.FixedSize(100, 100).WithSizing(ElementSizing.FitToChildren);
+        Element = new GuiElementDebugVerticalLayout(capi, thisBounds);
+
         ElementBounds? prevBound = null;
 
         foreach (LayoutBase layout in ChildLayouts) {
-            GuiElement? elem = null;
+            ElementBounds? childBounds;
             if (layout is SingleLayout sl) {
-                elem = sl.Element;
+                var elem = sl.Element;
 
                 elem.BeforeCalcBounds();
                 // TODO: Replace this with calc for just children only instead of recursive
                 elem.Bounds.CalcWorldBounds();
+
+                childBounds = elem.Bounds;
             }
-            else {
-                var childBounds = ElementBounds.Fixed(0, 0, 100, 100).WithSizing(ElementSizing.FitToChildren);
-                if (layout is HorizontalLayout hlayout) {
-                    elem = new GuiElementDebugHorizontalLayout(capi, childBounds);
-
-                    hlayout.SetElement(elem);
-                }
-                else if (layout is VerticalLayout vlayout) {
-                    elem = new GuiElementDebugVerticalLayout(capi, childBounds);
-
-                    vlayout.SetElement(elem);
-                }
-                else {
-                    throw new NotImplementedException();
-                }
-
+            else if (layout is LayoutWithElementBounds lweb) {
                 // Now containers need add all element that returned by GetAllGuiElements, by themselves
                 //container.Add(elem);
 
                 // If the child is a layout, this can't determine MinWidth until it determines its one
-                layout.Measure();
+                lweb.Measure();
 
-                // TODO: make chilren do it in their Measure()
-                elem.BeforeCalcBounds();
-                elem.Bounds.CalcWorldBounds();
+                childBounds = lweb.Bounds;
+            }
+            else {
+                throw new NotImplementedException();
             }
 
-            Bounds!.WithChild(elem.Bounds);
+            Bounds!.WithChild(childBounds);
 
-            // This layout need layout once to determine MinWidth
+            // This layout needs to layout once to determine MinWidth
             if (prevBound != null) {
                 // TODO: abstract how getting MinWidth, instead of relying on ElementBounds
-                ConnectBoundsUnderWithInterval(elem.Bounds, prevBound);
-                elem.Bounds.CalcWorldBounds();
+                ConnectBoundsUnderWithInterval(childBounds, prevBound);
+                childBounds.CalcWorldBounds();
             }
 
-            prevBound = elem.Bounds;
+            prevBound = childBounds;
         }
+
+        // All children set, now calc myself
+        Element.BeforeCalcBounds();
+        Bounds!.CalcWorldBounds();
     }
 
     public override void Arrange() {

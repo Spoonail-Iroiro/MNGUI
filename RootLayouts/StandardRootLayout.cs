@@ -9,8 +9,8 @@ using System.Threading.Tasks;
 using Vintagestory.API.Client;
 using Vintagestory;
 using MNGUITest;
-using MNGUITest.MNGUI.Extensions;
-using MNGUITest.MNGUI.GUIElements.Layout;
+using MNGUI.Extensions;
+using MNGUI.GUIElements.Layout;
 
 namespace MNGUI.RootLayouts {
     public class StandardRootLayout {
@@ -138,23 +138,6 @@ namespace MNGUI.RootLayouts {
 
             var container = composer.GetElement<MNGuiElementContainer>("container-main")!;
 
-            // TODO: Remove
-            GuiElement? elem;
-            var childBounds = ElementBounds.Fixed(0, 0, 100, 100).WithSizing(ElementSizing.FitToChildren);
-            if (ChildLayout is HorizontalLayout hlayout) {
-                elem = new GuiElementDebugHorizontalLayout(capi, childBounds);
-
-                hlayout.SetElement(elem);
-            }
-            else if (ChildLayout is VerticalLayout vlayout) {
-                elem = new GuiElementDebugVerticalLayout(capi, childBounds);
-
-                vlayout.SetElement(elem);
-            }
-            else {
-                throw new NotImplementedException();
-            }
-
             ChildLayout.Measure();
 
             foreach (var element in ChildLayout.GetAllGuiElements()) {
@@ -167,10 +150,9 @@ namespace MNGUI.RootLayouts {
 
             ChildLayout.Arrange();
 
-            //var boundsHie = DebugUtil.GetBoundsTree(Composer.Bounds);
-            //capi.Logger.Event(boundsHie);
 
             composer.Compose();
+
 
             //container.Bounds.CalcWorldBounds();
 

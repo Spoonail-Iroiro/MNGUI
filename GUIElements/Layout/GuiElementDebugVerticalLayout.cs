@@ -4,7 +4,7 @@ using System.Linq;
 using Vintagestory.API.Client;
 using Vintagestory.API.MathTools;
 
-namespace MNGUITest.MNGUI.GUIElements.Layout;
+namespace MNGUI.GUIElements.Layout;
 public class GuiElementDebugVerticalLayout : GuiElement {
     public GuiElementDebugVerticalLayout(ICoreClientAPI capi, ElementBounds bounds) : base(capi, bounds) {
     }

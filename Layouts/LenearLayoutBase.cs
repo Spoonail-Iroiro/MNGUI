@@ -1,6 +1,6 @@
 ﻿using MNGUI.Extensions;
 using MNGUI.GUIElements;
-using MNGUITest.MNGUI.GUIElements.Layout;
+using MNGUI.GUIElements.Layout;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -32,11 +32,6 @@ public abstract class LenearLayoutBase : LayoutWithElementBounds {
     protected ElementBounds? bounds;
 
     public override ElementBounds? Bounds => (Element?.Bounds ?? bounds);
-
-    // TODO: remove, by making children setup themselves in Measure()
-    public void SetElement(GuiElement element) {
-        Element = element;
-    }
 
     protected void AddInternal(GuiElement element, string? name = null) {
         var elementAsLayout = new SingleLayout(element, name);
