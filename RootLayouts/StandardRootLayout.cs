@@ -189,7 +189,7 @@ namespace MNGUI.RootLayouts {
         //}
 
         void OnNewScrollbarvalue(GuiComposer composer, float value) {
-            var container = composer.GetElement("main-container");
+            var container = composer.GetElement("container-main");
             if (container == null) return;
             container.Bounds.fixedY = scrollBarContentFixedY - value;
             container.Bounds.CalcWorldBounds();
