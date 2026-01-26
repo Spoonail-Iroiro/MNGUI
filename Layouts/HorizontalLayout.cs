@@ -7,63 +7,37 @@ using System.Linq;
 using System.Text;
 using Vintagestory.API.Client;
 using Vintagestory.API.Config;
+using Vintagestory.GameContent;
 
 namespace MNGUI.Layouts;
 
-
-internal class HorizontalLayout : LayoutWithElementBounds {
-    ICoreClientAPI capi;
+public class HorizontalLayout : LenearLayoutBase {
 
     public HorizontalLayoutAlignment Alignment { get; private set; }
 
-    public int Gap { get; private set; }
-
-    // Paddings Currently Not Supported
-    //public int HorizontalPadding { get; private set; }
-    //public int VerticalPadding { get; private set; }
-
-    public List<LayoutBase> ChildLayouts { get; private set; } = new();
-
-    public GuiElement? Element { get; private set; }
-
-    // Currently not used: for holding ElementBounds without GuiElement for future
-    protected ElementBounds? bounds;
-
-    public override ElementBounds? Bounds => (Element?.Bounds ?? bounds);
-
-    // Name only for display (like debugging bounds)
     public override string Name { get; set; } = "layout-horizontal";
 
-    public HorizontalLayout(ICoreClientAPI capi, int gap = 0, HorizontalLayoutAlignment alignment = HorizontalLayoutAlignment.Left) {
-        this.capi = capi;
+    public HorizontalLayout(ICoreClientAPI capi, int gap = 0, HorizontalLayoutAlignment alignment = HorizontalLayoutAlignment.Left) : base(capi, gap) {
         Alignment = alignment;
-        Gap = gap;
     }
 
     public HorizontalLayout Add(GuiElement element, string name = null) {
-        var elementAsLayout = new SingleLayout(element, name);
-
-        return Add(elementAsLayout);
+        AddInternal(element, name);
+        return this;
     }
 
     public HorizontalLayout Add(Func<GuiElement> createElement, string name = null) {
-        return Add(createElement(), name);
+        AddInternal(createElement, name);
+        return this;
     }
 
     public HorizontalLayout Add(LayoutBase layout) {
-        if (Alignment == HorizontalLayoutAlignment.Right && ChildLayouts.Count >= 1) throw new InvalidOperationException($"HorizontalLayout now supports one element when Alignment == Right");
-        ChildLayouts.Add(layout);
-
+        AddInternal(layout);
         return this;
     }
 
     public HorizontalLayout AddHorizontalSpace(double length) {
         return Add(new GuiElementParent(capi, ElementBounds.Fixed(0, 0, length, 1)));
-    }
-
-    // TODO: remove, by making children setup themselves in Measure()
-    public void SetElement(GuiElement element) {
-        Element = element;
     }
 
     protected override void MeasureInternal() {
@@ -143,18 +117,6 @@ internal class HorizontalLayout : LayoutWithElementBounds {
         //    }
         //    layout.Arrange();
         //}
-    }
-
-    public override IEnumerable<GuiElement> GetAllGuiElements() {
-        if (Element != null) {
-            yield return Element;
-        }
-
-        foreach (LayoutBase layout in ChildLayouts) {
-            foreach (var elem in layout.GetAllGuiElements()) {
-                yield return elem;
-            }
-        }
     }
 
     protected void ConnectBoundsRight(ElementBounds newBounds, ElementBounds originBounds) {

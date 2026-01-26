@@ -12,59 +12,35 @@ using MNGUITest.MNGUI.GUIElements.Layout;
 namespace MNGUI.Layouts;
 
 
-internal class VerticalLayout : LayoutWithElementBounds {
-    ICoreClientAPI capi;
+internal class VerticalLayout : LenearLayoutBase {
 
     public VerticalLayoutAlignment Alignment { get; private set; }
-
-    public int Gap { get; private set; }
-
-    // Paddings Currently Not Supported
-    //public int HorizontalPadding { get; private set; }
-    //public int VerticalPadding { get; private set; }
-
-    public List<LayoutBase> ChildLayouts { get; private set; } = new();
-
-    public GuiElement? Element { get; private set; }
-
-    // Currently not used: for holding ElementBounds without GuiElement for future
-    protected ElementBounds? bounds;
-
-    public override ElementBounds? Bounds => (Element?.Bounds ?? bounds);
 
     // Name only for display (like debugging bounds)
     public override string Name { get; set; } = "layout-vertical";
 
-    public VerticalLayout(ICoreClientAPI capi, int gap = 0, VerticalLayoutAlignment alignment = VerticalLayoutAlignment.Top) {
+    public VerticalLayout(ICoreClientAPI capi, int gap = 0, VerticalLayoutAlignment alignment = VerticalLayoutAlignment.Top) : base(capi, gap) {
         if (Alignment == VerticalLayoutAlignment.Bottom) throw new NotImplementedException();
-        this.capi = capi;
         Alignment = alignment;
-        Gap = gap;
     }
 
     public VerticalLayout Add(GuiElement element, string name = null) {
-        var elementAsLayout = new SingleLayout(element, name);
-
-        return Add(elementAsLayout);
+        AddInternal(element, name);
+        return this;
     }
 
     public VerticalLayout Add(Func<GuiElement> createElement, string name = null) {
-        return Add(createElement(), name);
+        AddInternal(createElement, name);
+        return this;
     }
 
     public VerticalLayout Add(LayoutBase layout) {
-        ChildLayouts.Add(layout);
-
+        AddInternal(layout);
         return this;
     }
 
     public VerticalLayout AddVerticalSpace(double length) {
         return Add(new GuiElementParent(capi, ElementBounds.Fixed(0, 0, 1, length)));
-    }
-
-    // TODO: remove, by making children setup themselves in Measure()
-    public void SetElement(GuiElement element) {
-        Element = element;
     }
 
     protected override void MeasureInternal() {
@@ -123,18 +99,6 @@ internal class VerticalLayout : LayoutWithElementBounds {
         // Todo: align to bottom
         foreach (LayoutBase layout in ChildLayouts) {
             layout.Arrange();
-        }
-    }
-
-    public override IEnumerable<GuiElement> GetAllGuiElements() {
-        if (Element != null) {
-            yield return Element;
-        }
-
-        foreach (LayoutBase layout in ChildLayouts) {
-            foreach (var elem in layout.GetAllGuiElements()) {
-                yield return elem;
-            }
         }
     }
 

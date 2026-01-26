@@ -4,6 +4,7 @@ using System.Linq;
 using Vintagestory.API.Client;
 
 namespace MNGUI.Layouts;
+
 public abstract class LayoutWithElementBounds : LayoutBase {
     public abstract ElementBounds? Bounds { get; }
 
