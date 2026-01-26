@@ -10,13 +10,15 @@ using Vintagestory.API.Client;
 using Vintagestory;
 using MNGUITest;
 using MNGUITest.MNGUI.Extensions;
+using MNGUITest.MNGUI.GUIElements.Layout;
 
 namespace MNGUI.RootLayouts {
     public class StandardRootLayout {
         double fixedHeight;
         double scrollBarContentFixedY;
 
-        public LayoutBase ChildLayout { get; private set; }
+        // "root" layout must have ElementBounds for getting child of the MNGuiElementContainer
+        public LayoutWithElementBounds ChildLayout { get; private set; }
 
         public Dictionary<string, GuiElement> NamedElements { get; private set; }
 
@@ -24,7 +26,7 @@ namespace MNGUI.RootLayouts {
             this.fixedHeight = fixedHeight;
         }
 
-        public void SetChildLayout(LayoutBase layout) {
+        public void SetChildLayout(LayoutWithElementBounds layout) {
             ChildLayout = layout;
             //RegisterNamedElements();
         }
@@ -134,12 +136,36 @@ namespace MNGUI.RootLayouts {
 
             // Scroll bar setting
 
-            var container = composer.GetElement<MNGuiElementContainer>("container-main");
+            var container = composer.GetElement<MNGuiElementContainer>("container-main")!;
 
-            ChildLayout.Layout(container);
+            // TODO: Remove
+            GuiElement? elem;
+            var childBounds = ElementBounds.Fixed(0, 0, 100, 100).WithSizing(ElementSizing.FitToChildren);
+            if (ChildLayout is HorizontalLayout hlayout) {
+                elem = new GuiElementDebugHorizontalLayout(capi, childBounds);
+
+                hlayout.SetElement(elem);
+            }
+            else if (ChildLayout is VerticalLayout vlayout) {
+                elem = new GuiElementDebugVerticalLayout(capi, childBounds);
+
+                vlayout.SetElement(elem);
+            }
+            else {
+                throw new NotImplementedException();
+            }
+
+            ChildLayout.Measure();
+
+            foreach (var element in ChildLayout.GetAllGuiElements()) {
+                container.Add(element);
+            }
+
+            container.SetChildBound(ChildLayout.Bounds);
 
             container.Bounds.CalcWorldBounds();
-            ChildLayout.BeforeComposerCompose();
+
+            ChildLayout.Arrange();
 
             //var boundsHie = DebugUtil.GetBoundsTree(Composer.Bounds);
             //capi.Logger.Event(boundsHie);

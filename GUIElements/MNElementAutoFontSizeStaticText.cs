@@ -20,8 +20,8 @@ internal class MNElementAutoFontSizeStaticText : SingleLayout {
     ) : base(CreateGuiElement(capi, text, bounds, onlyShrink, orientation, font)) {
     }
 
-    public override void BeforeComposerCompose() {
-        (GuiElement as GuiElementStaticText).AutoFontSize();
+    public override void Arrange() {
+        (Element as GuiElementStaticText).AutoFontSize();
     }
 
     protected static GuiElement CreateGuiElement(

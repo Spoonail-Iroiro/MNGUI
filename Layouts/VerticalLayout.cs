@@ -7,42 +7,49 @@ using System.Text;
 using System.Threading.Tasks;
 using Vintagestory.API.Client;
 using Vintagestory.Client.NoObf;
+using MNGUITest.MNGUI.GUIElements.Layout;
 
 namespace MNGUI.Layouts;
 
-enum VerticalLayoutAlignment {
-    Up,
-    Down
-}
 
-internal class VerticalLayout : LayoutBase {
+internal class VerticalLayout : LayoutWithElementBounds {
     ICoreClientAPI capi;
 
     public VerticalLayoutAlignment Alignment { get; private set; }
 
-    public int Interval { get; private set; }
+    public int Gap { get; private set; }
+
+    // Paddings Currently Not Supported
+    //public int HorizontalPadding { get; private set; }
+    //public int VerticalPadding { get; private set; }
 
     public List<LayoutBase> ChildLayouts { get; private set; } = new();
 
-    public VerticalLayout(ICoreClientAPI capi, int interval = 0, VerticalLayoutAlignment alignment = VerticalLayoutAlignment.Up) {
-        if (Alignment == VerticalLayoutAlignment.Down) throw new NotImplementedException();
+    public GuiElement? Element { get; private set; }
+
+    // Currently not used: for holding ElementBounds without GuiElement for future
+    protected ElementBounds? bounds;
+
+    public override ElementBounds? Bounds => (Element?.Bounds ?? bounds);
+
+    // Name only for display (like debugging bounds)
+    public override string Name { get; set; } = "layout-vertical";
+
+    public VerticalLayout(ICoreClientAPI capi, int gap = 0, VerticalLayoutAlignment alignment = VerticalLayoutAlignment.Top) {
+        if (Alignment == VerticalLayoutAlignment.Bottom) throw new NotImplementedException();
         this.capi = capi;
         Alignment = alignment;
-        Interval = interval;
+        Gap = gap;
     }
 
     public VerticalLayout Add(GuiElement element, string name = null) {
-        ChildLayouts.Add(new SingleLayout(element, name));
+        var elementAsLayout = new SingleLayout(element, name);
 
-        return this;
+        return Add(elementAsLayout);
     }
 
     public VerticalLayout Add(Func<GuiElement> createElement, string name = null) {
         return Add(createElement(), name);
-    }
-
-    public VerticalLayout AddVerticalSpace(double length) {
-        return Add(new GuiElementParent(capi, ElementBounds.Fixed(0, 0, 1, length)));
     }
 
     public VerticalLayout Add(LayoutBase layout) {
@@ -51,35 +58,59 @@ internal class VerticalLayout : LayoutBase {
         return this;
     }
 
-    public override void Layout(OldMNGuiElementContainer container) {
-        ElementBounds prevBound = null;
+    public VerticalLayout AddVerticalSpace(double length) {
+        return Add(new GuiElementParent(capi, ElementBounds.Fixed(0, 0, 1, length)));
+    }
+
+    // TODO: remove, by making children setup themselves in Measure()
+    public void SetElement(GuiElement element) {
+        Element = element;
+    }
+
+    protected override void MeasureInternal() {
+        ElementBounds? prevBound = null;
+
         foreach (LayoutBase layout in ChildLayouts) {
-            GuiElement elem = null;
+            GuiElement? elem = null;
             if (layout is SingleLayout sl) {
-                elem = sl.GuiElement;
+                elem = sl.Element;
 
-                container.Add(elem);
-
-                // Measure
                 elem.BeforeCalcBounds();
+                // TODO: Replace this with calc for just children only instead of recursive
                 elem.Bounds.CalcWorldBounds();
             }
             else {
-                var childContainer = new OldMNGuiElementContainer(capi, ElementBounds.Fixed(0, 0, 400, 400).WithSizing(ElementSizing.FitToChildren));
-                elem = childContainer;
+                var childBounds = ElementBounds.Fixed(0, 0, 100, 100).WithSizing(ElementSizing.FitToChildren);
+                if (layout is HorizontalLayout hlayout) {
+                    elem = new GuiElementDebugHorizontalLayout(capi, childBounds);
 
-                container.Add(elem);
+                    hlayout.SetElement(elem);
+                }
+                else if (layout is VerticalLayout vlayout) {
+                    elem = new GuiElementDebugVerticalLayout(capi, childBounds);
 
-                layout.Layout(childContainer);
-                // Measure
+                    vlayout.SetElement(elem);
+                }
+                else {
+                    throw new NotImplementedException();
+                }
+
+                // Now containers need add all element that returned by GetAllGuiElements, by themselves
+                //container.Add(elem);
+
+                // If the child is a layout, this can't determine MinWidth until it determines its one
+                layout.Measure();
+
+                // TODO: make chilren do it in their Measure()
                 elem.BeforeCalcBounds();
                 elem.Bounds.CalcWorldBounds();
             }
 
+            Bounds!.WithChild(elem.Bounds);
 
-            // Arrange
+            // This layout need layout once to determine MinWidth
             if (prevBound != null) {
-                // Relatively connect (so, it's okay to arrange children before parents
+                // TODO: abstract how getting MinWidth, instead of relying on ElementBounds
                 ConnectBoundsUnderWithInterval(elem.Bounds, prevBound);
                 elem.Bounds.CalcWorldBounds();
             }
@@ -88,9 +119,22 @@ internal class VerticalLayout : LayoutBase {
         }
     }
 
-    public override void BeforeComposerCompose() {
+    public override void Arrange() {
+        // Todo: align to bottom
         foreach (LayoutBase layout in ChildLayouts) {
-            layout.BeforeComposerCompose();
+            layout.Arrange();
+        }
+    }
+
+    public override IEnumerable<GuiElement> GetAllGuiElements() {
+        if (Element != null) {
+            yield return Element;
+        }
+
+        foreach (LayoutBase layout in ChildLayouts) {
+            foreach (var elem in layout.GetAllGuiElements()) {
+                yield return elem;
+            }
         }
     }
 
@@ -99,6 +143,6 @@ internal class VerticalLayout : LayoutBase {
     }
 
     protected void ConnectBoundsUnderWithInterval(ElementBounds newBounds, ElementBounds originBounds) {
-        newBounds.FitToChildrenFixedUnder(originBounds, Interval);
+        newBounds.FitToChildrenFixedUnder(originBounds, Gap);
     }
 }
