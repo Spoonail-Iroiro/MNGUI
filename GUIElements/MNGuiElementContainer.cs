@@ -1,4 +1,5 @@
 ﻿using Cairo;
+using MNGUI.GUIElements.Layout;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -374,9 +375,19 @@ public class MNGuiElementContainer : GuiElement {
     public override void RenderBoundsDebug() {
         base.RenderBoundsDebug();
         foreach (var elem in Elements) {
+            // Skip layout elements if Outline mode is 2
+            if (GuiComposer.Outlines == 2) {
+                if (elem is GuiElementDebugHorizontalLayout || elem is GuiElementDebugVerticalLayout) {
+                    continue;
+                }
+            }
             elem.RenderBoundsDebug();
         }
     }
 
+    public override int OutlineColor() {
+        var intVal = ColorUtil.ToRgba(255, 128, 255, 128);
+        return intVal;
+    }
 }
 
