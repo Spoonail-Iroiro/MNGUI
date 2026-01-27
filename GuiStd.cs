@@ -7,14 +7,14 @@ using System.Threading.Tasks;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 
-namespace RemoteTraderCheckMod.GUI.MNGui {
+namespace MNGUI.GUI.MNGui {
     internal class GuiStd {
         ICoreClientAPI capi;
         public GuiStd(ICoreClientAPI capi) {
             this.capi = capi;
         }
 
-        public GuiElementStaticText StandardTextAutoBoxSize(
+        public GuiElementStaticText TextAutoBoxSize(
             string text,
             EnumTextOrientation orientation = EnumTextOrientation.Left,
             CairoFont font = null
@@ -56,15 +56,20 @@ namespace RemoteTraderCheckMod.GUI.MNGui {
             var richText = new GuiElementRichtext(
                 capi,
                 VtmlUtil.Richtextify(capi, vtml, font),
-                ElementBoundsWH(width, 10) // height will be auto-sized
+                ElementBounds.FixedSize(width, 10) // height will be auto-sized
             );
 
             return richText;
         }
 
-        public static ElementBounds ElementBoundsWH(double width, double height) {
-            return ElementBounds.Fixed(0, 0, width, height);
+        public static ElementBounds ElementBoundsFitToChildren() {
+            return new ElementBounds().WithSizing(ElementSizing.FitToChildren);
         }
+
+        // Use ElementBounds.FixedSize(width, height)
+        //public static ElementBounds ElementBoundsWH(double width, double height) {
+        //    return ElementBounds.Fixed(0, 0, width, height);
+        //}
 
         public static void AddToContainerWithoutBounds(GuiElementContainer container, GuiElement element) {
             container.Elements.Add(element);
