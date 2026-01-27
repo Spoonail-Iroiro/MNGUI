@@ -11,16 +11,25 @@ using Vintagestory;
 using MNGUITest;
 using MNGUI.Extensions;
 using MNGUI.GUIElements.Layout;
+using MNGUITest.MNGUI.GUIElements;
 
 namespace MNGUI.RootLayouts {
     public class StandardRootLayout {
         double fixedHeight;
-        double scrollBarContentFixedY;
 
         // "root" layout must have ElementBounds for getting child of the MNGuiElementContainer
-        public LayoutWithElementBounds ChildLayout { get; private set; }
+        public LayoutWithElementBounds? ChildLayout { get; private set; }
 
-        public Dictionary<string, GuiElement> NamedElements { get; private set; }
+        public static readonly string MainContainerName = "container-main";
+        public static readonly string ScrollbarName = "scrollbar-main";
+
+        public static MNGuiElementContainer? GetMainContainerElement(GuiComposer composer) {
+            return composer.GetElement<MNGuiElementContainer>(MainContainerName);
+        }
+
+        public static MNGuiElementVerticalScrollbar? GetScrollbarElement(GuiComposer composer) {
+            return composer.GetElement<MNGuiElementVerticalScrollbar>(ScrollbarName);
+        }
 
         public StandardRootLayout(double fixedHeight = 400) {
             this.fixedHeight = fixedHeight;
@@ -28,54 +37,6 @@ namespace MNGUI.RootLayouts {
 
         public void SetChildLayout(LayoutWithElementBounds layout) {
             ChildLayout = layout;
-            //RegisterNamedElements();
-        }
-
-        //protected void RegisterNamedElements() {
-        //    NamedElements = new Dictionary<string, GuiElement>();
-        //    var layoutStack = new Stack<LayoutBase>();
-        //    layoutStack.Push(ChildLayout);
-
-        //    while (layoutStack.Count > 0) {
-        //        var currentLayout = layoutStack.Pop();
-        //        if (currentLayout is HorizontalLayout hl) {
-        //            foreach (var l in hl.ChildLayouts) {
-        //                layoutStack.Push(l);
-        //            }
-        //        }
-        //        else if (currentLayout is VerticalLayout vl) {
-        //            foreach (var l in vl.ChildLayouts) {
-        //                layoutStack.Push(l);
-        //            }
-        //        }
-        //        else if (currentLayout is SingleLayout sl) {
-        //            if (sl.Name != null) {
-        //                NamedElements[sl.Name] = sl.GuiElement;
-        //            }
-        //        }
-        //        else {
-        //            throw new NotImplementedException();
-        //        }
-        //    }
-        //}
-
-        //public T GetNamedElement<T>(string name) where T : class {
-        //    var rtn = GetNamedElementOrNull<T>(name);
-
-        //    if (rtn == null) throw new InvalidOperationException($"No such a GuiElement: {name}");
-
-        //    return rtn;
-        //}
-
-        public T GetNamedElementOrNull<T>(string name) where T : class {
-            if (NamedElements == null) throw new InvalidOperationException($"ContainerComposer has not children!");
-            var elem = NamedElements.GetValueOrDefault(name);
-            if (elem == null) return null;
-
-            var result = elem as T;
-            if (result == null) throw new InvalidOperationException($"GuiElement {name} is found, but not a type {nameof(T)}. Actual: {elem.GetType().Name}");
-
-            return elem as T;
         }
 
         public GuiComposer Layout(ICoreClientAPI capi, GuiDialogBlockEntity gui) {
@@ -116,7 +77,7 @@ namespace MNGUI.RootLayouts {
 
             var containerBounds = clipBounds.ForkContainingChild();
             containerBounds.BothSizing = ElementSizing.FitToChildren;
-            containerBounds.Name = "container";
+            containerBounds.Name = "bounds-container";
 
             var composer = capi.Gui.CreateCompo(dialogId, dialogBounds);
             composer
@@ -127,16 +88,19 @@ namespace MNGUI.RootLayouts {
                     .BeginChildElements() // Begin insetBounds child
                         .BeginChildElements(clipParentBounds) // Begin clipParentBounds (now child of insetBounds) child
                             .BeginClip(clipBounds) // Begin clipBounds child (auto)
-                                .AddInteractiveElement(new MNGuiElementContainer(capi, containerBounds), "container-main")
+                                .AddInteractiveElement(new MNGuiElementContainer(capi, containerBounds), MainContainerName)
                             .EndClip()
                         .EndChildElements()
                     .EndChildElements()
-                    .AddVerticalScrollbar(val => OnNewScrollbarvalue(composer, val), scrollBarBounds, "scrollbar-main")
+                    //.AddVerticalScrollbar(val => OnNewScrollbarvalue(composer, val), scrollBarBounds, "scrollbar-main")
+                    .AddInteractiveElement(new MNGuiElementVerticalScrollbar(capi, scrollBarBounds), ScrollbarName)
                 .EndChildElements();
 
             // Scroll bar setting
 
-            var container = composer.GetElement<MNGuiElementContainer>("container-main")!;
+            var container = composer.GetElement<MNGuiElementContainer>(MainContainerName)!;
+
+            if (ChildLayout == null) throw new InvalidOperationException($"{typeof(StandardRootLayout).Name} can't generate dialog without ChildLayout!");
 
             ChildLayout.Measure();
 
@@ -150,31 +114,12 @@ namespace MNGUI.RootLayouts {
 
             ChildLayout.Arrange();
 
-
             composer.Compose();
 
-
-            //container.Bounds.CalcWorldBounds();
-
-            var mainScrollBar = composer.GetScrollbar("scrollbar-main");
-            mainScrollBar.SetHeights(scrollBarBounds.OuterHeightInt, (float)(containerBounds.OuterHeight + GuiStyle.HalfPadding * 2));
-            scrollBarContentFixedY = container.Bounds.fixedY;
+            var mainScrollBar = composer.GetElement<MNGuiElementVerticalScrollbar>(ScrollbarName)!;
+            mainScrollBar.InitViewAndContentBounds(clipBounds, containerBounds);
 
             return composer;
-        }
-
-        //public void UpdateContainerBounds() {
-        //    var container = Composer.GetElement("main-container");
-        //    container.Bounds.CalcWorldBounds();
-        //    var mainScrollBar = Composer.GetScrollbar("scrollbar-main");
-        //    mainScrollBar.SetHeights((float)mainScrollBar.Bounds.OuterHeight, (float)(container.Bounds.OuterHeight + GuiStyle.HalfPadding * 2));
-        //}
-
-        void OnNewScrollbarvalue(GuiComposer composer, float value) {
-            var container = composer.GetElement("container-main");
-            if (container == null) return;
-            container.Bounds.fixedY = scrollBarContentFixedY - value;
-            container.Bounds.CalcWorldBounds();
         }
     }
 }
