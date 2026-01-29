@@ -1,7 +1,7 @@
-﻿using MNGUI.Extensions;
-using MNGUI.GUIElements;
-using MNGUI.GUIElements.Layout;
-using MNGUI.GUIElements.Layout;
+﻿using MNGui.Extensions;
+using MNGui.GuiElements;
+using MNGui.GuiElements.Layout;
+using MNGui.GuiElements.Layout;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,7 +11,7 @@ using Vintagestory.API.Common;
 using Vintagestory.API.Config;
 using Vintagestory.GameContent;
 
-namespace MNGUI.Layouts;
+namespace MNGui.Layouts;
 
 public class HorizontalLayout : LenearLayoutBase {
 

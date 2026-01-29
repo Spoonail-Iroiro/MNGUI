@@ -1,6 +1,6 @@
-﻿using MNGUI.Extensions;
-using MNGUI.GUIElements;
-using MNGUI.GUIElements.Layout;
+﻿using MNGui.Extensions;
+using MNGui.GuiElements;
+using MNGui.GuiElements.Layout;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,7 +8,7 @@ using System.Text;
 using Vintagestory.API.Client;
 using Vintagestory.API.Config;
 
-namespace MNGUI.Layouts;
+namespace MNGui.Layouts;
 
 public abstract class LenearLayoutBase : LayoutWithElementBounds {
     public LenearLayoutBase(ICoreClientAPI capi, int gap) {

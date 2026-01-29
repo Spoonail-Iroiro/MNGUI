@@ -3,7 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Vintagestory.API.Client;
 
-namespace MNGUI.Layouts;
+namespace MNGui.Layouts;
 
 public abstract class LayoutWithElementBounds : LayoutBase {
     public abstract ElementBounds? Bounds { get; }

@@ -1,12 +1,12 @@
 ﻿using Cairo;
-using MNGUI.GUIElements.Layout;
+using MNGui.GuiElements.Layout;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using Vintagestory.API.Client;
 using Vintagestory.API.MathTools;
 
-namespace MNGUI.GUIElements;
+namespace MNGui.GuiElements;
 
 public class MNGuiElementContainer : GuiElement {
     LoadedTexture contentTexture;

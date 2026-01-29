@@ -1,4 +1,4 @@
-﻿using MNGUI.Layouts;
+﻿using MNGui.Layouts;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Vintagestory.API.Client;
 
-namespace MNGUI.GUIElements;
+namespace MNGui.GuiElements;
 
 internal class MNElementAutoFontSizeStaticText : SingleLayout {
 
