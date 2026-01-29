@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Vintagestory.API.Client;
 using Vintagestory;
-using MNGUITest;
+using MNGuiTest;
 using MNGui.Extensions;
 using MNGui.GuiElements.Layout;
 
