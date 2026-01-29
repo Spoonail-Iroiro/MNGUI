@@ -11,10 +11,9 @@ using Vintagestory;
 using MNGUITest;
 using MNGUI.Extensions;
 using MNGUI.GUIElements.Layout;
-using MNGUITest.MNGUI.GUIElements;
 
-namespace MNGUI.RootLayouts {
-    public class StandardRootLayout {
+namespace MNGUI.DialogBuilders {
+    public class StandardDialogBuilder {
         double fixedHeight;
 
         // "root" layout must have ElementBounds for getting child of the MNGuiElementContainer
@@ -31,7 +30,7 @@ namespace MNGUI.RootLayouts {
             return composer.GetElement<MNGuiElementVerticalScrollbar>(ScrollbarName);
         }
 
-        public StandardRootLayout(double fixedHeight = 400) {
+        public StandardDialogBuilder(double fixedHeight = 400) {
             this.fixedHeight = fixedHeight;
         }
 
@@ -73,7 +72,6 @@ namespace MNGUI.RootLayouts {
             var clipBounds = clipParentBounds.ForkContainingChild();
             clipBounds.Name = "bounds-clip";
             clipBounds.horizontalSizing = ElementSizing.FitToChildren;
-            //insetBounds.WithChild(clipBounds);
 
             var containerBounds = clipBounds.ForkContainingChild();
             containerBounds.BothSizing = ElementSizing.FitToChildren;
@@ -100,7 +98,7 @@ namespace MNGUI.RootLayouts {
 
             var container = composer.GetElement<MNGuiElementContainer>(MainContainerName)!;
 
-            if (ChildLayout == null) throw new InvalidOperationException($"{typeof(StandardRootLayout).Name} can't generate dialog without ChildLayout!");
+            if (ChildLayout == null) throw new InvalidOperationException($"{typeof(StandardDialogBuilder).Name} can't generate dialog without ChildLayout!");
 
             ChildLayout.Measure();
 

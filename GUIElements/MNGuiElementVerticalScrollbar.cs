@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Vintagestory.API.Client;
 
-namespace MNGUITest.MNGUI.GUIElements;
+namespace MNGUI.GUIElements;
 public class MNGuiElementVerticalScrollbar : GuiElementScrollbar {
     public ElementBounds? ContentBounds { get; protected set; }
     public ElementBounds? ViewBounds { get; protected set; }
