@@ -1,16 +1,8 @@
 ﻿using MNGui.Layouts;
 using MNGui.GuiElements;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Text;
-using System.Threading.Tasks;
 using Vintagestory.API.Client;
-using Vintagestory;
-using MNGuiTest;
 using MNGui.Extensions;
-using MNGui.GuiElements.Layout;
 
 namespace MNGui.DialogBuilders {
     public class StandardDialogBuilder {
