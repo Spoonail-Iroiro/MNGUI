@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using Vintagestory.API.Client;
 
-namespace MNGUI.Layouts;
+namespace MNGui.Layouts;
 
 internal class SingleLayout : LayoutWithElementBounds {
     public GuiElement Element { get; private set; }

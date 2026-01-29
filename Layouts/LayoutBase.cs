@@ -1,4 +1,4 @@
-﻿using MNGUI.GUIElements;
+﻿using MNGui.GuiElements;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Vintagestory.API.Client;
 
-namespace MNGUI.Layouts;
+namespace MNGui.Layouts;
 
 public abstract class LayoutBase {
 

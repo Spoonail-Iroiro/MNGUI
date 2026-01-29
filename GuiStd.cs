@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 
-namespace MNGUI.GUI.MNGui {
+namespace MNGui {
     internal class GuiStd {
         ICoreClientAPI capi;
         public GuiStd(ICoreClientAPI capi) {

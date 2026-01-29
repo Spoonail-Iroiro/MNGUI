@@ -4,7 +4,7 @@ using Cairo;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Client;
 
-namespace MNGUI.GUIElements;
+namespace MNGui.GuiElements;
 
 public class OldMNGuiElementContainer : GuiElement {
     /// <summary>

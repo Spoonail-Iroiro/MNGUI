@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 
-namespace MNGUI.Layouts;
+namespace MNGui.Layouts;
 
 public enum HorizontalLayoutAlignment {
     Left,

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Reflection.Emit;
 using Vintagestory.API.Client;
 
-namespace MNGUI.Patches;
+namespace MNGui.Patches;
 
 public static class FixedGLScissorMethods {
     public static void MyGlScissor(IRenderAPI render, int x, int y, int width, int height) {

@@ -1,5 +1,5 @@
-﻿using MNGUI.GUIElements;
-using MNGUI.Extensions;
+﻿using MNGui.GuiElements;
+using MNGui.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,10 +7,10 @@ using System.Text;
 using System.Threading.Tasks;
 using Vintagestory.API.Client;
 using Vintagestory.Client.NoObf;
-using MNGUI.GUIElements.Layout;
+using MNGui.GuiElements.Layout;
 using Vintagestory.API.Config;
 
-namespace MNGUI.Layouts;
+namespace MNGui.Layouts;
 
 
 internal class VerticalLayout : LenearLayoutBase {

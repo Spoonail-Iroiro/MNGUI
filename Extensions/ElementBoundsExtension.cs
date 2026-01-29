@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using Vintagestory.API.Client;
 using Vintagestory.API.Config;
 
-namespace MNGUI.Extensions;
+namespace MNGui.Extensions;
 
 internal static class ElementBoundsExtension {
     public static void FitToChildrenFixedRightOf(this ElementBounds elementBounds, ElementBounds refBounds, double leftSpacing = 0.0) {

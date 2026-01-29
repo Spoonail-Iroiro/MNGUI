@@ -1,5 +1,5 @@
-﻿using MNGUI.Layouts;
-using MNGUI.GUIElements;
+﻿using MNGui.Layouts;
+using MNGui.GuiElements;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,10 +9,10 @@ using System.Threading.Tasks;
 using Vintagestory.API.Client;
 using Vintagestory;
 using MNGUITest;
-using MNGUI.Extensions;
-using MNGUI.GUIElements.Layout;
+using MNGui.Extensions;
+using MNGui.GuiElements.Layout;
 
-namespace MNGUI.DialogBuilders {
+namespace MNGui.DialogBuilders {
     public class StandardDialogBuilder {
         double fixedHeight;
 
