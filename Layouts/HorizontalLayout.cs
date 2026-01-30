@@ -50,22 +50,8 @@ public class HorizontalLayout : LenearLayoutBase {
 
         foreach (LayoutBase layout in ChildLayouts) {
             ElementBounds? childBounds;
-            if (layout is SingleLayout sl) {
-                var elem = sl.Element;
-
-                elem.BeforeCalcBounds();
-                // TODO: Replace this with calc for just children only instead of recursive
-                elem.Bounds.CalcWorldBounds();
-
-                childBounds = elem.Bounds;
-            }
-            else if (layout is LayoutWithElementBounds lweb) {
-                // Now containers need add all element that returned by GetAllGuiElements, by themselves
-                //container.Add(elem);
-
-                // If the child is a layout, this can't determine MinWidth until it determines its one
+            if (layout is LayoutWithElementBounds lweb) {
                 lweb.Measure();
-
                 childBounds = lweb.Bounds;
             }
             else {

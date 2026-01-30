@@ -28,7 +28,8 @@ internal class SingleLayout : LayoutWithElementBounds {
 
     // TODO: make this own Measure (like, calling Element.BeforeCalcBounds. Currently parent layout do that instead)
     protected override void MeasureInternal() {
-        // Bounds already returns non-null (GuiElement.Bounds), so nothing here
+        Element.BeforeCalcBounds();
+        Element.Bounds.CalcWorldBounds();
     }
 
     public override void Arrange() {
