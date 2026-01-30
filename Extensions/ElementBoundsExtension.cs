@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
+﻿using MNGui.Util;
 using Vintagestory.API.Client;
 using Vintagestory.API.Config;
 
@@ -23,5 +18,59 @@ internal static class ElementBoundsExtension {
         refBounds.CalcWorldBounds();
         // Hacky, make it (absFixedY + OuterHeight + upSpacing / scale) after scaled
         elementBounds.fixedY = refBounds.absFixedY * 1.0 / RuntimeEnv.GUIScale + refBounds.OuterHeight * 1.0 / RuntimeEnv.GUIScale + upSpacing;
+    }
+
+    /// <summary>
+    /// ElementBounds.OuterWidth is GUI-scaled width (should be called absOuterWidth?). This returns unscaled value.
+    /// </summary>
+    /// <param name="elementBounds"></param>
+    /// <returns></returns>
+    public static double UnscaledOuterWidth(this ElementBounds elementBounds) {
+        return BoundsUtil.UnScaled(elementBounds.OuterWidth);
+    }
+
+    /// <summary>
+    /// ElementBounds.OuterHeight is GUI-scaled height (should be called absOuterHeight?). This returns unscaled value.
+    /// </summary>
+    /// <param name="elementBounds"></param>
+    /// <returns></returns>
+    public static double UnscaledOuterHeight(this ElementBounds elementBounds) {
+        return BoundsUtil.UnScaled(elementBounds.OuterHeight);
+    }
+
+    /// <summary>
+    /// ElementBounds.InnerWidth is GUI-scaled width. This returns unscaled value.
+    /// </summary>
+    /// <param name="elementBounds"></param>
+    /// <returns></returns>
+    public static double UnscaledInnerWidth(this ElementBounds elementBounds) {
+        return BoundsUtil.UnScaled(elementBounds.absInnerWidth);
+    }
+
+    /// <summary>
+    /// ElementBounds.InnerHeight is GUI-scaled height. This returns unscaled value.
+    /// </summary>
+    /// <param name="elementBounds"></param>
+    /// <returns></returns>
+    public static double UnscaledInnerHeight(this ElementBounds elementBounds) {
+        return BoundsUtil.UnScaled(elementBounds.absInnerHeight);
+    }
+
+    public static double UnscaledAbsFixedX(this ElementBounds elementBounds) {
+        return BoundsUtil.UnScaled(elementBounds.absFixedX);
+    }
+
+    public static double UnscaledAbsFixedY(this ElementBounds elementBounds) {
+        return BoundsUtil.UnScaled(elementBounds.absFixedY);
+    }
+
+    public static void WithUnscaledOuterWidth(this ElementBounds elementBounds, double unscaledWidth) {
+        elementBounds.horizontalSizing = ElementSizing.Fixed;
+        elementBounds.WithFixedWidth(unscaledWidth - 2.0 * elementBounds.fixedPaddingX);
+    }
+
+    public static void WithUnscaledOuterHeight(this ElementBounds elementBounds, double unscaledHeight) {
+        elementBounds.verticalSizing = ElementSizing.Fixed;
+        elementBounds.WithFixedHeight(unscaledHeight - 2.0 * elementBounds.fixedPaddingY);
     }
 }

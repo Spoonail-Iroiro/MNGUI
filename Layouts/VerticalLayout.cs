@@ -77,19 +77,25 @@ internal class VerticalLayout : LenearLayoutBase {
         Bounds!.CalcWorldBounds();
     }
 
-    public override void Arrange() {
-        // For testing but might help implementing stertch/fill element layout?
-        //var fixedHeight = Bounds!.absInnerHeight / RuntimeEnv.GUIScale;
-        //Bounds!.fixedHeight = fixedHeight + 20;
-        //Bounds.verticalSizing = ElementSizing.Fixed;
-        //Bounds!.fixedHeight += 20;
-        //Bounds.verticalSizing = ElementSizing.Fixed;
-
-        // Todo: align to bottom
-        foreach (LayoutBase layout in ChildLayouts) {
-            layout.Arrange();
-        }
+    public override void Arrange(Vec2 fixedPos, Size availableSize) {
+        //foreach (LayoutBase layout in ChildLayouts) {
+        //    layout.Arrange();
+        //}
     }
+
+    //public override void Arrange() {
+    //    // For testing but might help implementing stertch/fill element layout?
+    //    //var fixedHeight = Bounds!.absInnerHeight / RuntimeEnv.GUIScale;
+    //    //Bounds!.fixedHeight = fixedHeight + 20;
+    //    //Bounds.verticalSizing = ElementSizing.Fixed;
+    //    //Bounds!.fixedHeight += 20;
+    //    //Bounds.verticalSizing = ElementSizing.Fixed;
+
+    //    // Todo: align to bottom
+    //    foreach (LayoutBase layout in ChildLayouts) {
+    //        layout.Arrange();
+    //    }
+    //}
 
     protected void ConnectBoundsUnder(ElementBounds newBounds, ElementBounds originBounds) {
         newBounds.FitToChildrenFixedUnder(originBounds);

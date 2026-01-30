@@ -102,7 +102,7 @@ namespace MNGui.DialogBuilders {
 
             container.Bounds.CalcWorldBounds();
 
-            ChildLayout.Arrange();
+            ChildLayout.Arrange(new(0, 0), new(ChildLayout.Bounds.UnscaledOuterWidth(), ChildLayout.Bounds.UnscaledOuterHeight()));
 
             composer.Compose();
 

@@ -16,6 +16,9 @@ public abstract class LenearLayoutBase : LayoutWithElementBounds {
         Gap = gap;
     }
 
+    public double? CustomMinWidth { get; set; } = null;
+    public double? CustomMinHeight { get; set; } = null;
+
     protected ICoreClientAPI capi;
 
     public int Gap { get; protected set; }
