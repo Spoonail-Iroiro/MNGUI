@@ -21,7 +21,6 @@ internal class VerticalLayout : LenearLayoutBase {
     public override string Name { get; set; } = "layout-vertical";
 
     public VerticalLayout(ICoreClientAPI capi, int gap = 0, VerticalLayoutAlignment alignment = VerticalLayoutAlignment.Top) : base(capi, gap) {
-        if (Alignment == VerticalLayoutAlignment.Bottom) throw new NotImplementedException();
         Alignment = alignment;
     }
 
@@ -48,7 +47,8 @@ internal class VerticalLayout : LenearLayoutBase {
         var thisBounds = ElementBounds.FixedSize(100, 100).WithSizing(ElementSizing.FitToChildren);
         Element = new GuiElementDebugVerticalLayout(capi, thisBounds);
 
-        ElementBounds? prevBound = null;
+        //ElementBounds? prevBound = null;
+        SpaceGreedingPolicy verticalSpaceGreeding = SpaceGreedingPolicy.None;
 
         foreach (LayoutBase layout in ChildLayouts) {
             ElementBounds? childBounds;
@@ -60,48 +60,76 @@ internal class VerticalLayout : LenearLayoutBase {
                 throw new NotImplementedException();
             }
 
-            Bounds!.WithChild(childBounds);
-
-            // This layout needs to layout once to determine MinWidth
-            if (prevBound != null) {
-                // TODO: abstract how getting MinWidth, instead of relying on ElementBounds
-                ConnectBoundsUnderWithInterval(childBounds, prevBound);
-                childBounds.CalcWorldBounds();
+            if (layout.VerticalSpaceGreedingPolicy == SpaceGreedingPolicy.Greeding) {
+                verticalSpaceGreeding = SpaceGreedingPolicy.Greeding;
             }
 
-            prevBound = childBounds;
+            Bounds!.WithChild(childBounds);
         }
 
+        AlignChildrenTopLeft();
+
+        VerticalSpaceGreedingPolicy = verticalSpaceGreeding;
+
         // All children set, now calc myself
+        // First, just fit to children
         Element.BeforeCalcBounds();
         Bounds!.CalcWorldBounds();
+
+        // TODO: SizePolicy-specific recalc of MinWidth/Height
+
+        // If MinSize is smaller than CustomMinSize, fix for each side
+        if (CustomMinWidth != null && MinWidth < CustomMinWidth.Value) {
+            Bounds.WithUnscaledOuterWidth(CustomMinWidth.Value);
+        }
+        if (CustomMinHeight != null && MinHeight < CustomMinHeight.Value) {
+            Bounds.WithUnscaledOuterHeight(CustomMinHeight.Value);
+        }
     }
 
     public override void Arrange(Vec2 fixedPos, Size availableSize) {
-        //foreach (LayoutBase layout in ChildLayouts) {
-        //    layout.Arrange();
-        //}
+        // Todo: align to bottom
+        AlignChildrenTopLeft();
+        foreach (LayoutBase layout in ChildLayouts) {
+            if (layout is LayoutWithElementBounds lweb) {
+                if (lweb.Bounds == null) throw new InvalidOperationException($"Align is called before child ElementBounds set");
+                lweb.Arrange(new Vec2(lweb.Bounds.fixedX, lweb.Bounds.fixedY), lweb.MinSize);
+            }
+            else {
+                throw new NotImplementedException();
+            }
+        }
     }
 
-    //public override void Arrange() {
-    //    // For testing but might help implementing stertch/fill element layout?
-    //    //var fixedHeight = Bounds!.absInnerHeight / RuntimeEnv.GUIScale;
-    //    //Bounds!.fixedHeight = fixedHeight + 20;
-    //    //Bounds.verticalSizing = ElementSizing.Fixed;
-    //    //Bounds!.fixedHeight += 20;
-    //    //Bounds.verticalSizing = ElementSizing.Fixed;
 
-    //    // Todo: align to bottom
-    //    foreach (LayoutBase layout in ChildLayouts) {
-    //        layout.Arrange();
-    //    }
+    protected void AlignChildrenTopLeft() {
+        double currentY = 0.0;
+
+        foreach (var layout in ChildLayouts) {
+            ElementBounds? childBounds;
+            if (layout is LayoutWithElementBounds lweb) {
+                if (lweb.Bounds == null) throw new InvalidOperationException($"Align is called before child ElementBounds set");
+                childBounds = lweb.Bounds;
+            }
+            else {
+                throw new NotImplementedException();
+            }
+
+            childBounds.fixedX = 0.0;
+            childBounds.fixedY = currentY;
+
+            childBounds.CalcWorldBounds();
+
+            currentY = childBounds.UnscaledAbsFixedY() + childBounds.UnscaledOuterHeight() + Gap;
+        }
+    }
+
+
+    //protected void ConnectBoundsUnder(ElementBounds newBounds, ElementBounds originBounds) {
+    //    newBounds.FitToChildrenFixedUnder(originBounds);
     //}
 
-    protected void ConnectBoundsUnder(ElementBounds newBounds, ElementBounds originBounds) {
-        newBounds.FitToChildrenFixedUnder(originBounds);
-    }
-
-    protected void ConnectBoundsUnderWithInterval(ElementBounds newBounds, ElementBounds originBounds) {
-        newBounds.FitToChildrenFixedUnder(originBounds, Gap);
-    }
+    //protected void ConnectBoundsUnderWithInterval(ElementBounds newBounds, ElementBounds originBounds) {
+    //    newBounds.FitToChildrenFixedUnder(originBounds, Gap);
+    //}
 }
