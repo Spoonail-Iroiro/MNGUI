@@ -42,10 +42,13 @@ public class HorizontalLayout : LenearLayoutBase {
         return Add(new GuiElementParent(capi, ElementBounds.Fixed(0, 0, length, 1)));
     }
 
-    protected override void MeasureInternal() {
+    public override void Init() {
         // TODO: Reuse element and bound
-        var thisBounds = ElementBounds.FixedSize(100, 100).WithSizing(ElementSizing.FitToChildren);
+        var thisBounds = CreateDefaultBounds();
         Element = new GuiElementDebugHorizontalLayout(capi, thisBounds);
+    }
+
+    protected override void MeasureInternal() {
 
         // Check if any child is space-greeding on long side
         // Note: LinearLayouts are always none space-greeding on its short side!

@@ -1,6 +1,7 @@
 ﻿using MNGui.Extensions;
 using MNGui.GuiElements;
 using MNGui.GuiElements.Layout;
+using MNGui.Util;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -48,6 +49,15 @@ public abstract class LenearLayoutBase : LayoutWithElementBounds {
 
     protected void AddInternal(LayoutBase layout) {
         ChildLayouts.Add(layout);
+    }
+
+    // TODO: shared default bounds? 
+    protected ElementBounds CreateDefaultBounds() { return ElementBounds.FixedSize(100, 100).WithSizing(ElementSizing.FitToChildren); }
+
+    protected void ResetBounds() {
+        if (Bounds != null) {
+            BoundsUtil.CopyFixedProperties(CreateDefaultBounds(), Bounds);
+        }
     }
 
     public override IEnumerable<GuiElementInfo> GetAllGuiElements() {
