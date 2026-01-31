@@ -34,6 +34,13 @@ public abstract class LayoutBase {
     // TODO: abstract how getting MinHeight, instead of relying on ElementBounds
     //public abstract int CalcMinHeight();
 
+    /// <summary>
+    /// Init elements, bounds or other data structures. They must be available after calling this.
+    /// </summary>
+    public virtual void Init() {
+
+    }
+
     public virtual Size Measure() {
         return MinSize;
     }

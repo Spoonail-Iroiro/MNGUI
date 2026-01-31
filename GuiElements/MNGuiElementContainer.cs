@@ -162,12 +162,25 @@ public class MNGuiElementContainer : GuiElement {
         }
     }
 
+    /// <summary>
+    /// Reset states. Elements are not disposed for re-adding
+    /// </summary>
     public void Clear() {
         Elements.Clear();
         NamedElements.Clear();
         Bounds.ChildBounds.Clear();
         currentFocusableElementKey = 0;
         Tabbable = false;
+    }
+
+    /// <summary>
+    /// Clear + element.Dispose for each element in Elements. Mainly for before constructing and adding new layouts and GuiElements
+    /// </summary>
+    public void Discard() {
+        foreach (var element in Elements) {
+            element.Dispose();
+        }
+        Clear();
     }
 
     public void Add(GuiElement elem, string? name = null) {
