@@ -42,9 +42,9 @@ public abstract class LayoutBase {
 
     }
 
-    public virtual IEnumerable<GuiElement> GetAllGuiElements() {
+    public virtual IEnumerable<GuiElementInfo> GetAllGuiElements() {
 
-        return Enumerable.Empty<GuiElement>();
+        return Enumerable.Empty<GuiElementInfo>();
     }
 }
 
@@ -74,4 +74,9 @@ public record class Vec2(
     public double X { get; set; } = X;
     public double Y { get; set; } = Y;
 }
+
+public record class GuiElementInfo(
+    GuiElement Element,
+    string? Name
+);
 

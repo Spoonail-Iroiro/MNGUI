@@ -50,9 +50,10 @@ public abstract class LenearLayoutBase : LayoutWithElementBounds {
         ChildLayouts.Add(layout);
     }
 
-    public override IEnumerable<GuiElement> GetAllGuiElements() {
+    public override IEnumerable<GuiElementInfo> GetAllGuiElements() {
         if (Element != null) {
-            yield return Element;
+            // Doesn't add with name - layout has no actual GuiElement, it's only for debug draw
+            yield return new GuiElementInfo(Element, null);
         }
 
         foreach (LayoutBase layout in ChildLayouts) {

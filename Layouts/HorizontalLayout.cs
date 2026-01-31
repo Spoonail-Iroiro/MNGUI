@@ -66,7 +66,7 @@ public class HorizontalLayout : LenearLayoutBase {
                 horizontalSpaceGreeding = SpaceGreedingPolicy.Greeding;
             }
 
-            Bounds!.WithChild(childBounds);
+            Bounds!.WithChildForce(childBounds);
 
         }
 

@@ -3,6 +3,7 @@ using MNGui.GuiElements;
 using System;
 using Vintagestory.API.Client;
 using MNGui.Extensions;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MNGui.DialogBuilders {
     public class StandardDialogBuilder {
@@ -26,6 +27,7 @@ namespace MNGui.DialogBuilders {
             this.fixedHeight = fixedHeight;
         }
 
+        [MemberNotNull(nameof(ChildLayout))]
         public void SetChildLayout(LayoutWithElementBounds layout) {
             ChildLayout = layout;
         }
@@ -94,15 +96,15 @@ namespace MNGui.DialogBuilders {
 
             ChildLayout.Measure();
 
-            foreach (var element in ChildLayout.GetAllGuiElements()) {
-                container.Add(element);
+            foreach (var elementInfo in ChildLayout.GetAllGuiElements()) {
+                container.Add(elementInfo.Element, elementInfo.Name);
             }
 
             container.SetChildBound(ChildLayout.Bounds);
 
             container.Bounds.CalcWorldBounds();
 
-            ChildLayout.Arrange(new(0, 0), new(ChildLayout.Bounds.UnscaledOuterWidth(), ChildLayout.Bounds.UnscaledOuterHeight()));
+            ChildLayout.ArrangeWithMinSize();
 
             composer.Compose();
 

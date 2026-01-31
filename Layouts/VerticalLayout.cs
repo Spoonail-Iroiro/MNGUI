@@ -64,7 +64,7 @@ internal class VerticalLayout : LenearLayoutBase {
                 verticalSpaceGreeding = SpaceGreedingPolicy.Greeding;
             }
 
-            Bounds!.WithChild(childBounds);
+            Bounds!.WithChildForce(childBounds);
         }
 
         AlignChildrenTopLeft();

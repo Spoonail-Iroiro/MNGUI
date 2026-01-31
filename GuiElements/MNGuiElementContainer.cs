@@ -1,4 +1,5 @@
 ﻿using Cairo;
+using MNGui.Extensions;
 using MNGui.GuiElements.Layout;
 using System;
 using System.Collections.Generic;
@@ -15,7 +16,9 @@ public class MNGuiElementContainer : GuiElement {
 
     bool renderFocusHighlight;
 
-    public List<GuiElement> Elements = new List<GuiElement>();
+    public List<GuiElement> Elements { get; protected set; } = new();
+
+    public Dictionary<string, GuiElement> NamedElements { get; protected set; } = new();
 
     public int unscaledCellSpacing = 10;
 
@@ -161,13 +164,17 @@ public class MNGuiElementContainer : GuiElement {
 
     public void Clear() {
         Elements.Clear();
+        NamedElements.Clear();
         Bounds.ChildBounds.Clear();
         currentFocusableElementKey = 0;
         Tabbable = false;
     }
 
-    public void Add(GuiElement elem) {
+    public void Add(GuiElement elem, string? name = null) {
         Elements.Add(elem);
+        if (name != null) {
+            NamedElements[name] = elem;
+        }
 
         if (elem.Focusable) {
             elem.TabIndex = currentFocusableElementKey++;
@@ -182,7 +189,7 @@ public class MNGuiElementContainer : GuiElement {
 
     public void SetChildBound(ElementBounds bounds) {
         Bounds.ChildBounds.Clear();
-        Bounds.WithChild(bounds);
+        Bounds.WithChildForce(bounds);
         //Bounds.ChildBounds.Add(bounds);
         //bounds.ParentBounds = Bounds;
     }

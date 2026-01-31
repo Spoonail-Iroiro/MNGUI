@@ -18,8 +18,10 @@ internal class SingleLayout : LayoutWithElementBounds {
 
     public override string Name { get; set; } = "layout-single";
 
+    protected bool IsCustomNameSet { get; set; } = false;
+
     /// <summary>
-    /// Creates a SingleLayout, which usually holds a GuiElement. If name is specified and the element's bounds has no name, it will be set.
+    /// Creates a SingleLayout, which usually holds a GuiElement. If name is specified and the element's bounds has no name, "bounds-{name}" will be set.
     /// </summary>
     /// <param name="guiElement"></param>
     /// <param name="name">Name for this layout, and also a part of the name of the element's bounds if it doesn't have one yet</param>
@@ -27,6 +29,7 @@ internal class SingleLayout : LayoutWithElementBounds {
         Element = guiElement;
         if (name != null) {
             Name = name;
+            IsCustomNameSet = true;
 
             if (guiElement.Bounds.Name == null) {
                 Element.Bounds.Name = $"bounds-{name}";
@@ -58,6 +61,9 @@ internal class SingleLayout : LayoutWithElementBounds {
         // TODO: Element-specific auto calc such as AutoHeight()
         Element.BeforeCalcBounds();
         Element.Bounds.CalcWorldBounds();
+        if (Element is GuiElementDynamicText gedt) {
+            if (gedt.autoHeight) gedt.AutoHeight();
+        }
 
         if (HorizontalSizePolicy == SizePolicy.FitToChildren) {
 
@@ -93,8 +99,8 @@ internal class SingleLayout : LayoutWithElementBounds {
         }
     }
 
-    public override IEnumerable<GuiElement> GetAllGuiElements() {
-        yield return Element;
+    public override IEnumerable<GuiElementInfo> GetAllGuiElements() {
+        yield return new(Element, IsCustomNameSet ? Name : null);
     }
 
 }

@@ -21,4 +21,11 @@ public abstract class LayoutWithElementBounds : LayoutBase {
     /// Implementation of Measure. Bounds MUST NOT return null after this and its UnscaledOuterWidth/Height MUST represents MinWidth/Height.
     /// </summary>
     protected abstract void MeasureInternal();
+
+    /// <summary>
+    /// Arrange with position (0,0) and current MinSize (= Bounds). Suitable for root layout.
+    /// </summary>
+    public void ArrangeWithMinSize() {
+        Arrange(new(0.0, 0.0), MinSize);
+    }
 }
