@@ -43,9 +43,20 @@ internal class VerticalLayout : LenearLayoutBase {
         return Add(new GuiElementParent(capi, ElementBounds.Fixed(0, 0, 1, length)));
     }
 
+    public override void Init() {
+        // Don't init myself twice
+        if (Element == null) {
+            var thisBounds = CreateDefaultBounds();
+            Element = new GuiElementDebugVerticalLayout(capi, thisBounds);
+        }
+
+        foreach (LayoutBase layout in ChildLayouts) {
+            layout.Init();
+        }
+    }
+
     protected override void MeasureInternal() {
-        var thisBounds = ElementBounds.FixedSize(100, 100).WithSizing(ElementSizing.FitToChildren);
-        Element = new GuiElementDebugVerticalLayout(capi, thisBounds);
+        ResetBounds();
 
         //ElementBounds? prevBound = null;
         SpaceGreedingPolicy verticalSpaceGreeding = SpaceGreedingPolicy.None;
@@ -88,7 +99,7 @@ internal class VerticalLayout : LenearLayoutBase {
     }
 
     public override void Arrange(Vec2 fixedPos, Size availableSize) {
-        // Todo: align to bottom
+        // TODO: various aligning (currently only topleft)
         AlignChildrenTopLeft();
         foreach (LayoutBase layout in ChildLayouts) {
             if (layout is LayoutWithElementBounds lweb) {
@@ -100,7 +111,6 @@ internal class VerticalLayout : LenearLayoutBase {
             }
         }
     }
-
 
     protected void AlignChildrenTopLeft() {
         double currentY = 0.0;

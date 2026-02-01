@@ -49,21 +49,27 @@ internal class SingleLayout : LayoutWithElementBounds {
         return this;
     }
 
-    // TODO: make this own Measure (like, calling Element.BeforeCalcBounds. Currently parent layout do that instead)
-    protected override void MeasureInternal() {
+    public override void Init() {
         if (InitialBounds == null) {
             InitialBounds = Element.Bounds.FlatCopy();
         }
+    }
 
-        // "Recover" initial state
-        BoundsUtil.CopyFixedProperties(InitialBounds, Element.Bounds);
+    protected override void MeasureInternal() {
+        // "Recover" initial state unless the size policy is FtC
+        if (HorizontalSizePolicy != SizePolicy.FitToChildren) {
+            Element.Bounds.CopyHorizontalFixedPropertiesFrom(InitialBounds!);
+        }
+        if (VerticalSizePolicy != SizePolicy.FitToChildren) {
+            Element.Bounds.CopyVerticalFixedPropertiesFrom(InitialBounds!);
+        }
 
         // TODO: Element-specific auto calc such as AutoHeight()
         Element.BeforeCalcBounds();
         Element.Bounds.CalcWorldBounds();
-        if (Element is GuiElementDynamicText gedt) {
-            if (gedt.autoHeight) gedt.AutoHeight();
-        }
+        //if (Element is GuiElementDynamicText gedt) {
+        //    if (gedt.autoHeight) gedt.AutoHeight();
+        //}
 
         if (HorizontalSizePolicy == SizePolicy.FitToChildren) {
 

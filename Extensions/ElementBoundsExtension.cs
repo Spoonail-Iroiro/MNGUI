@@ -89,4 +89,39 @@ internal static class ElementBoundsExtension {
         return elementBounds;
     }
 
+    public static void CopyFixedPropertiesFrom(this ElementBounds dst, ElementBounds src) {
+        dst.CopyHorizontalFixedPropertiesFrom(src);
+        dst.CopyVerticalFixedPropertiesFrom(src);
+    }
+
+    public static void CopyHorizontalFixedPropertiesFrom(this ElementBounds dst, ElementBounds src) {
+        dst.Alignment = src.Alignment;
+        dst.horizontalSizing = src.horizontalSizing;
+        dst.fixedOffsetX = src.fixedOffsetX;
+        dst.fixedX = src.fixedX;
+        dst.fixedWidth = src.fixedWidth;
+        dst.fixedPaddingX = src.fixedPaddingX;
+        dst.fixedMarginX = src.fixedMarginX;
+    }
+
+    public static void CopyVerticalFixedPropertiesFrom(this ElementBounds dst, ElementBounds src) {
+        dst.Alignment = src.Alignment;
+        dst.verticalSizing = src.verticalSizing;
+        dst.fixedOffsetY = src.fixedOffsetY;
+        dst.fixedY = src.fixedY;
+        dst.fixedHeight = src.fixedHeight;
+        dst.fixedPaddingY = src.fixedPaddingY;
+        dst.fixedMarginY = src.fixedMarginY;
+    }
+
+    /// <summary>
+    /// Remove all children, with bounds.ParentBounds = null on each bounds (= PROPERLY CLEAR TREE)
+    /// </summary>
+    /// <param name="elementBounds"></param>
+    public static void RemoveAllChildBounds(this ElementBounds elementBounds) {
+        foreach (var childBounds in elementBounds.ChildBounds) {
+            childBounds.ParentBounds = null;
+        }
+        elementBounds.ChildBounds.Clear();
+    }
 }

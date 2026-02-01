@@ -176,7 +176,7 @@ public class MNGuiElementContainer : GuiElement {
     /// <summary>
     /// Clear + element.Dispose for each element in Elements. Mainly for before constructing and adding new layouts and GuiElements
     /// </summary>
-    public void Discard() {
+    public void DiscardContent() {
         foreach (var element in Elements) {
             element.Dispose();
         }

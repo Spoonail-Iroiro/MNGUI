@@ -94,6 +94,8 @@ namespace MNGui.DialogBuilders {
 
             if (ChildLayout == null) throw new InvalidOperationException($"{typeof(StandardDialogBuilder).Name} can't generate dialog without ChildLayout!");
 
+            ChildLayout.Init();
+
             ChildLayout.Measure();
 
             foreach (var elementInfo in ChildLayout.GetAllGuiElements()) {

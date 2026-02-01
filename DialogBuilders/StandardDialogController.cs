@@ -49,21 +49,23 @@ public class StandardDialogController {
             // TODO: Cleaner re-layouting - Separate InitElements from Measure
 
             if (ChildLayout is LayoutWithElementBounds lweb) {
-                container.Clear();
+                //container.Clear();
 
                 ChildLayout.Measure();
 
-                foreach (var elementInfo in ChildLayout.GetAllGuiElements()) {
-                    container.Add(elementInfo.Element, elementInfo.Name);
-                }
+                //foreach (var elementInfo in ChildLayout.GetAllGuiElements()) {
+                //    container.Add(elementInfo.Element, elementInfo.Name);
+                //}
 
-                container.SetChildBound(lweb.Bounds!);
+                //container.SetChildBound(lweb.Bounds!);
 
                 container.Bounds.CalcWorldBounds();
 
                 lweb.ArrangeWithMinSize();
 
                 Composer.ReCompose();
+
+                GetScrollbarElement()?.OnBoundsUpdated();
             }
         },
         0);

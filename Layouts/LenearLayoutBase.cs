@@ -54,9 +54,13 @@ public abstract class LenearLayoutBase : LayoutWithElementBounds {
     // TODO: shared default bounds? 
     protected ElementBounds CreateDefaultBounds() { return ElementBounds.FixedSize(100, 100).WithSizing(ElementSizing.FitToChildren); }
 
+    /// <summary>
+    /// Reset bound states while keeping them the same object. Copy default values from default bounds and remove children without wrong tree issue
+    /// </summary>
     protected void ResetBounds() {
         if (Bounds != null) {
-            BoundsUtil.CopyFixedProperties(CreateDefaultBounds(), Bounds);
+            Bounds.CopyFixedPropertiesFrom(CreateDefaultBounds());
+            Bounds.RemoveAllChildBounds();
         }
     }
 

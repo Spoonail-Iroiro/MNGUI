@@ -4,6 +4,7 @@ using MNGui.GuiElements.Layout;
 using MNGui.GuiElements.Layout;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using Vintagestory.API.Client;
@@ -43,8 +44,11 @@ public class HorizontalLayout : LenearLayoutBase {
     }
 
     public override void Init() {
-        var thisBounds = CreateDefaultBounds();
-        Element = new GuiElementDebugHorizontalLayout(capi, thisBounds);
+        // Don't init myself twice
+        if (Element == null) {
+            var thisBounds = CreateDefaultBounds();
+            Element = new GuiElementDebugHorizontalLayout(capi, thisBounds);
+        }
 
         foreach (LayoutBase layout in ChildLayouts) {
             layout.Init();
@@ -99,6 +103,20 @@ public class HorizontalLayout : LenearLayoutBase {
         }
     }
 
+    public override void Arrange(Vec2 fixedPos, Size availableSize) {
+        // TODO: various aligning (currently only topleft)
+        AlignChildrenTopLeft();
+        foreach (LayoutBase layout in ChildLayouts) {
+            if (layout is LayoutWithElementBounds lweb) {
+                if (lweb.Bounds == null) throw new InvalidOperationException($"Call Measure before Arrange!");
+                layout.Arrange(new Vec2(lweb.Bounds.fixedX, lweb.Bounds.fixedY), lweb.MinSize);
+            }
+            else {
+                throw new NotImplementedException("We're not prepared for layouts without bounds...");
+            }
+        }
+    }
+
     protected void AlignChildrenTopLeft() {
         double currentX = 0.0;
 
@@ -119,20 +137,6 @@ public class HorizontalLayout : LenearLayoutBase {
 
             // Calc fixedX of next element
             currentX = childBounds.UnscaledAbsFixedX() + childBounds.UnscaledOuterWidth() + Gap;
-        }
-    }
-
-    public override void Arrange(Vec2 fixedPos, Size availableSize) {
-        // TODO: various aligning (currently only topleft)
-        AlignChildrenTopLeft();
-        foreach (LayoutBase layout in ChildLayouts) {
-            if (layout is LayoutWithElementBounds lweb) {
-                if (lweb.Bounds == null) throw new InvalidOperationException($"Call Measure before Arrange!");
-                layout.Arrange(new Vec2(lweb.Bounds.fixedX, lweb.Bounds.fixedY), lweb.MinSize);
-            }
-            else {
-                throw new NotImplementedException("We're not prepared for layouts without bounds...");
-            }
         }
     }
 
