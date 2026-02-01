@@ -16,11 +16,13 @@ internal class MNElementAutoFontSizeStaticText : SingleLayout {
         ElementBounds bounds,
         bool onlyShrink = false,
         EnumTextOrientation orientation = EnumTextOrientation.Left,
-        CairoFont font = null
-    ) : base(CreateGuiElement(capi, text, bounds, onlyShrink, orientation, font)) {
+        CairoFont font = null,
+        string name = null
+    ) : base(CreateGuiElement(capi, text, bounds, onlyShrink, orientation, font), name) {
     }
 
-    public override void Arrange() {
+    public override void Arrange(Vec2 fixedPos, Size availableSize) {
+        base.Arrange(fixedPos, availableSize);
         (Element as GuiElementStaticText).AutoFontSize();
     }
 

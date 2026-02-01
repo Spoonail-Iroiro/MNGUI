@@ -1,6 +1,7 @@
 ﻿using MNGui.Extensions;
 using MNGui.GuiElements;
 using MNGui.GuiElements.Layout;
+using MNGui.Util;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,6 +16,9 @@ public abstract class LenearLayoutBase : LayoutWithElementBounds {
         this.capi = capi;
         Gap = gap;
     }
+
+    public double? CustomMinWidth { get; set; } = null;
+    public double? CustomMinHeight { get; set; } = null;
 
     protected ICoreClientAPI capi;
 
@@ -47,9 +51,23 @@ public abstract class LenearLayoutBase : LayoutWithElementBounds {
         ChildLayouts.Add(layout);
     }
 
-    public override IEnumerable<GuiElement> GetAllGuiElements() {
+    // TODO: shared default bounds? 
+    protected ElementBounds CreateDefaultBounds() { return ElementBounds.FixedSize(100, 100).WithSizing(ElementSizing.FitToChildren); }
+
+    /// <summary>
+    /// Reset bound states while keeping them the same object. Copy default values from default bounds and remove children without wrong tree issue
+    /// </summary>
+    protected void ResetBounds() {
+        if (Bounds != null) {
+            Bounds.CopyFixedPropertiesFrom(CreateDefaultBounds());
+            Bounds.RemoveAllChildBounds();
+        }
+    }
+
+    public override IEnumerable<GuiElementInfo> GetAllGuiElements() {
         if (Element != null) {
-            yield return Element;
+            // Doesn't add with name - layout has no actual GuiElement, it's only for debug draw
+            yield return new GuiElementInfo(Element, null);
         }
 
         foreach (LayoutBase layout in ChildLayouts) {

@@ -21,7 +21,6 @@ internal class VerticalLayout : LenearLayoutBase {
     public override string Name { get; set; } = "layout-vertical";
 
     public VerticalLayout(ICoreClientAPI capi, int gap = 0, VerticalLayoutAlignment alignment = VerticalLayoutAlignment.Top) : base(capi, gap) {
-        if (Alignment == VerticalLayoutAlignment.Bottom) throw new NotImplementedException();
         Alignment = alignment;
     }
 
@@ -44,72 +43,103 @@ internal class VerticalLayout : LenearLayoutBase {
         return Add(new GuiElementParent(capi, ElementBounds.Fixed(0, 0, 1, length)));
     }
 
-    protected override void MeasureInternal() {
-        var thisBounds = ElementBounds.FixedSize(100, 100).WithSizing(ElementSizing.FitToChildren);
-        Element = new GuiElementDebugVerticalLayout(capi, thisBounds);
+    public override void Init() {
+        // Don't init myself twice
+        if (Element == null) {
+            var thisBounds = CreateDefaultBounds();
+            Element = new GuiElementDebugVerticalLayout(capi, thisBounds);
+        }
 
-        ElementBounds? prevBound = null;
+        foreach (LayoutBase layout in ChildLayouts) {
+            layout.Init();
+        }
+    }
+
+    protected override void MeasureInternal() {
+        ResetBounds();
+
+        //ElementBounds? prevBound = null;
+        SpaceGreedingPolicy verticalSpaceGreeding = SpaceGreedingPolicy.None;
 
         foreach (LayoutBase layout in ChildLayouts) {
             ElementBounds? childBounds;
-            if (layout is SingleLayout sl) {
-                var elem = sl.Element;
-
-                elem.BeforeCalcBounds();
-                // TODO: Replace this with calc for just children only instead of recursive
-                elem.Bounds.CalcWorldBounds();
-
-                childBounds = elem.Bounds;
-            }
-            else if (layout is LayoutWithElementBounds lweb) {
-                // Now containers need add all element that returned by GetAllGuiElements, by themselves
-                //container.Add(elem);
-
-                // If the child is a layout, this can't determine MinWidth until it determines its one
+            if (layout is LayoutWithElementBounds lweb) {
                 lweb.Measure();
-
                 childBounds = lweb.Bounds;
             }
             else {
                 throw new NotImplementedException();
             }
 
-            Bounds!.WithChild(childBounds);
-
-            // This layout needs to layout once to determine MinWidth
-            if (prevBound != null) {
-                // TODO: abstract how getting MinWidth, instead of relying on ElementBounds
-                ConnectBoundsUnderWithInterval(childBounds, prevBound);
-                childBounds.CalcWorldBounds();
+            if (layout.VerticalSpaceGreedingPolicy == SpaceGreedingPolicy.Greeding) {
+                verticalSpaceGreeding = SpaceGreedingPolicy.Greeding;
             }
 
-            prevBound = childBounds;
+            Bounds!.WithChildForce(childBounds);
         }
+
+        AlignChildrenTopLeft();
+
+        VerticalSpaceGreedingPolicy = verticalSpaceGreeding;
 
         // All children set, now calc myself
+        // First, just fit to children
         Element.BeforeCalcBounds();
         Bounds!.CalcWorldBounds();
-    }
 
-    public override void Arrange() {
-        // For testing but might help implementing stertch/fill element layout?
-        //var fixedHeight = Bounds!.absInnerHeight / RuntimeEnv.GUIScale;
-        //Bounds!.fixedHeight = fixedHeight + 20;
-        //Bounds.verticalSizing = ElementSizing.Fixed;
-        //Bounds!.fixedHeight += 20;
-        //Bounds.verticalSizing = ElementSizing.Fixed;
+        // TODO: SizePolicy-specific recalc of MinWidth/Height
 
-        // Todo: align to bottom
-        foreach (LayoutBase layout in ChildLayouts) {
-            layout.Arrange();
+        // If MinSize is smaller than CustomMinSize, fix for each side
+        if (CustomMinWidth != null && MinWidth < CustomMinWidth.Value) {
+            Bounds.WithUnscaledOuterWidth(CustomMinWidth.Value);
+        }
+        if (CustomMinHeight != null && MinHeight < CustomMinHeight.Value) {
+            Bounds.WithUnscaledOuterHeight(CustomMinHeight.Value);
         }
     }
 
-    protected void ConnectBoundsUnder(ElementBounds newBounds, ElementBounds originBounds) {
-        newBounds.FitToChildrenFixedUnder(originBounds);
+    public override void Arrange(Vec2 fixedPos, Size availableSize) {
+        // TODO: various aligning (currently only topleft)
+        AlignChildrenTopLeft();
+        foreach (LayoutBase layout in ChildLayouts) {
+            if (layout is LayoutWithElementBounds lweb) {
+                if (lweb.Bounds == null) throw new InvalidOperationException($"Align is called before child ElementBounds set");
+                lweb.Arrange(new Vec2(lweb.Bounds.fixedX, lweb.Bounds.fixedY), lweb.MinSize);
+            }
+            else {
+                throw new NotImplementedException();
+            }
+        }
     }
 
-    protected void ConnectBoundsUnderWithInterval(ElementBounds newBounds, ElementBounds originBounds) {
-        newBounds.FitToChildrenFixedUnder(originBounds, Gap);
+    protected void AlignChildrenTopLeft() {
+        double currentY = 0.0;
+
+        foreach (var layout in ChildLayouts) {
+            ElementBounds? childBounds;
+            if (layout is LayoutWithElementBounds lweb) {
+                if (lweb.Bounds == null) throw new InvalidOperationException($"Align is called before child ElementBounds set");
+                childBounds = lweb.Bounds;
+            }
+            else {
+                throw new NotImplementedException();
+            }
+
+            childBounds.fixedX = 0.0;
+            childBounds.fixedY = currentY;
+
+            childBounds.CalcWorldBounds();
+
+            currentY = childBounds.UnscaledAbsFixedY() + childBounds.UnscaledOuterHeight() + Gap;
+        }
     }
+
+
+    //protected void ConnectBoundsUnder(ElementBounds newBounds, ElementBounds originBounds) {
+    //    newBounds.FitToChildrenFixedUnder(originBounds);
+    //}
+
+    //protected void ConnectBoundsUnderWithInterval(ElementBounds newBounds, ElementBounds originBounds) {
+    //    newBounds.FitToChildrenFixedUnder(originBounds, Gap);
+    //}
 }

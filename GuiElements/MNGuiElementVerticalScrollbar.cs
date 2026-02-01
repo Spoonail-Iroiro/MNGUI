@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MNGui.Extensions;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Vintagestory.API.Client;
@@ -26,7 +27,7 @@ public class MNGuiElementVerticalScrollbar : GuiElementScrollbar {
 
         ContentInitialFixedY = ContentBounds.fixedY;
 
-        SetHeights(ViewBounds.OuterHeightInt, ContentBounds.OuterHeightInt);
+        SetHeights((float)ViewBounds.UnscaledOuterHeight(), (float)ContentBounds.UnscaledOuterHeight());
     }
 
     /// <summary>

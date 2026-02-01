@@ -4,6 +4,7 @@ using MNGui.GuiElements.Layout;
 using MNGui.GuiElements.Layout;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using Vintagestory.API.Client;
@@ -42,85 +43,136 @@ public class HorizontalLayout : LenearLayoutBase {
         return Add(new GuiElementParent(capi, ElementBounds.Fixed(0, 0, length, 1)));
     }
 
-    protected override void MeasureInternal() {
-        var thisBounds = ElementBounds.FixedSize(100, 100).WithSizing(ElementSizing.FitToChildren);
-        Element = new GuiElementDebugHorizontalLayout(capi, thisBounds);
+    public override void Init() {
+        // Don't init myself twice
+        if (Element == null) {
+            var thisBounds = CreateDefaultBounds();
+            Element = new GuiElementDebugHorizontalLayout(capi, thisBounds);
+        }
 
-        ElementBounds? prevBound = null;
+        foreach (LayoutBase layout in ChildLayouts) {
+            layout.Init();
+        }
+    }
+
+    protected override void MeasureInternal() {
+        ResetBounds();
+
+        // Check if any child is space-greeding on long side
+        // Note: LinearLayouts are always none space-greeding on its short side!
+        SpaceGreedingPolicy horizontalSpaceGreeding = SpaceGreedingPolicy.None;
 
         foreach (LayoutBase layout in ChildLayouts) {
             ElementBounds? childBounds;
-            if (layout is SingleLayout sl) {
-                var elem = sl.Element;
-
-                elem.BeforeCalcBounds();
-                // TODO: Replace this with calc for just children only instead of recursive
-                elem.Bounds.CalcWorldBounds();
-
-                childBounds = elem.Bounds;
-            }
-            else if (layout is LayoutWithElementBounds lweb) {
-                // Now containers need add all element that returned by GetAllGuiElements, by themselves
-                //container.Add(elem);
-
-                // If the child is a layout, this can't determine MinWidth until it determines its one
+            if (layout is LayoutWithElementBounds lweb) {
                 lweb.Measure();
-
                 childBounds = lweb.Bounds;
             }
             else {
                 throw new NotImplementedException();
             }
 
-            Bounds!.WithChild(childBounds);
-
-            // This layout needs to layout once to determine MinWidth
-            if (prevBound != null) {
-                // TODO: abstract how getting MinWidth, instead of relying on ElementBounds
-                ConnectBoundsRightWithInterval(childBounds, prevBound);
-                childBounds.CalcWorldBounds();
+            // Check if any child is space-greeding on long side
+            if (layout.HorizontalSpaceGreedingPolicy == SpaceGreedingPolicy.Greeding) {
+                horizontalSpaceGreeding = SpaceGreedingPolicy.Greeding;
             }
 
-            prevBound = childBounds;
+            Bounds!.WithChildForce(childBounds);
+
         }
+
+        // This layout needs to layout once to determine MinWidth
+        // Because it's still Measure, just top-left aligning is enough to calc MinSize
+        AlignChildrenTopLeft();
+
+        HorizontalSpaceGreedingPolicy = horizontalSpaceGreeding;
 
         // All children set, now calc myself
+        // First, just fit to children
         Element.BeforeCalcBounds();
         Bounds!.CalcWorldBounds();
-    }
 
-    public override void Arrange() {
-        // Todo: align to right
-        foreach (LayoutBase layout in ChildLayouts) {
-            layout.Arrange();
+        // TODO: SizePolicy-specific recalc of MinWidth/Height
+
+        // If MinSize is smaller than CustomMinSize, fix for each side
+        if (CustomMinWidth != null && MinWidth < CustomMinWidth.Value) {
+            Bounds.WithUnscaledOuterWidth(CustomMinWidth.Value);
         }
-
-        //if (Alignment == HorizontalLayoutAlignment.Right) {
-        //    var elem = ThisContainer.Elements.FirstOrDefault();
-        //    if (elem != null) {
-        //        // Hacky, only make sense when directly under a vertical layout
-        //        elem.BeforeCalcBounds();
-        //        elem.Bounds.CalcWorldBounds();
-        //        elem.Bounds.fixedOffsetX = (ThisContainer.Bounds.ParentBounds.InnerWidth - elem.Bounds.OuterWidth) / RuntimeEnv.GUIScale;
-        //        elem.Bounds.CalcWorldBounds();
-        //    }
-        //}
-
-        //foreach (LayoutBase layout in ChildLayouts) {
-        //    // Prevent useless right aligned Horizontal layout
-        //    if (layout is HorizontalLayout hlayout && hlayout.Alignment == HorizontalLayoutAlignment.Right) {
-        //        throw new InvalidOperationException($"Right aligned HorizontalLayout is currently allowed direct under VerticalLayout");
-        //    }
-        //    layout.Arrange();
-        //}
+        if (CustomMinHeight != null && MinHeight < CustomMinHeight.Value) {
+            Bounds.WithUnscaledOuterHeight(CustomMinHeight.Value);
+        }
     }
 
-    protected void ConnectBoundsRight(ElementBounds newBounds, ElementBounds originBounds) {
-        newBounds.FitToChildrenFixedRightOf(originBounds);
+    public override void Arrange(Vec2 fixedPos, Size availableSize) {
+        // TODO: various aligning (currently only topleft)
+        AlignChildrenTopLeft();
+        foreach (LayoutBase layout in ChildLayouts) {
+            if (layout is LayoutWithElementBounds lweb) {
+                if (lweb.Bounds == null) throw new InvalidOperationException($"Call Measure before Arrange!");
+                layout.Arrange(new Vec2(lweb.Bounds.fixedX, lweb.Bounds.fixedY), lweb.MinSize);
+            }
+            else {
+                throw new NotImplementedException("We're not prepared for layouts without bounds...");
+            }
+        }
     }
 
-    protected void ConnectBoundsRightWithInterval(ElementBounds newBounds, ElementBounds originBounds) {
-        newBounds.FitToChildrenFixedRightOf(originBounds, Gap);
+    protected void AlignChildrenTopLeft() {
+        double currentX = 0.0;
+
+        foreach (LayoutBase layout in ChildLayouts) {
+            ElementBounds? childBounds;
+            if (layout is LayoutWithElementBounds lweb) {
+                if (lweb.Bounds == null) throw new InvalidOperationException($"Align is called before child ElementBounds set");
+                childBounds = lweb.Bounds;
+            }
+            else {
+                throw new NotImplementedException("We're not prepared for layouts without bounds...");
+            }
+
+            childBounds.fixedX = currentX;
+            childBounds.fixedY = 0.0;
+
+            childBounds.CalcWorldBounds();
+
+            // Calc fixedX of next element
+            currentX = childBounds.UnscaledAbsFixedX() + childBounds.UnscaledOuterWidth() + Gap;
+        }
     }
+
+    //public override void Arrange(Size availableSize) {
+    //    // Todo: align to right
+    //    foreach (LayoutBase layout in ChildLayouts) {
+    //        layout.Arrange(layout.MinSize);
+    //    }
+
+    //    //if (Alignment == HorizontalLayoutAlignment.Right) {
+    //    //    var elem = ThisContainer.Elements.FirstOrDefault();
+    //    //    if (elem != null) {
+    //    //        // Hacky, only make sense when directly under a vertical layout
+    //    //        elem.BeforeCalcBounds();
+    //    //        elem.Bounds.CalcWorldBounds();
+    //    //        elem.Bounds.fixedOffsetX = (ThisContainer.Bounds.ParentBounds.InnerWidth - elem.Bounds.OuterWidth) / RuntimeEnv.GUIScale;
+    //    //        elem.Bounds.CalcWorldBounds();
+    //    //    }
+    //    //}
+
+    //    //foreach (LayoutBase layout in ChildLayouts) {
+    //    //    // Prevent useless right aligned Horizontal layout
+    //    //    if (layout is HorizontalLayout hlayout && hlayout.Alignment == HorizontalLayoutAlignment.Right) {
+    //    //        throw new InvalidOperationException($"Right aligned HorizontalLayout is currently allowed direct under VerticalLayout");
+    //    //    }
+    //    //    layout.Arrange();
+    //    //}
+    //}
+
+    //protected void ConnectBoundsRight(ElementBounds newBounds, ElementBounds originBounds) {
+    //    newBounds.FitToChildrenFixedRightOf(originBounds);
+    //}
+
+    //protected void ConnectBoundsRightWithInterval(ElementBounds newBounds, ElementBounds originBounds) {
+    //    newBounds.fixedX = originBounds.UnscaledAbsFixedX() 
+    //    //newBounds.FitToChildrenFixedRightOf(originBounds, Gap);
+    //}
 
 }
