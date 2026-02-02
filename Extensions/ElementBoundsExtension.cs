@@ -81,6 +81,7 @@ internal static class ElementBoundsExtension {
     /// <param name="childBounds"></param>
     /// <returns></returns>
     public static ElementBounds WithChildForce(this ElementBounds elementBounds, ElementBounds childBounds) {
+        if (childBounds == null) return elementBounds;
         if (!elementBounds.ChildBounds.Contains(childBounds)) {
             elementBounds.ChildBounds.Add(childBounds);
         }
@@ -119,6 +120,7 @@ internal static class ElementBoundsExtension {
     /// </summary>
     /// <param name="elementBounds"></param>
     public static void RemoveAllChildBounds(this ElementBounds elementBounds) {
+        // TODO: check this: Removing ParentBounds cause exception on mouse event...
         foreach (var childBounds in elementBounds.ChildBounds) {
             childBounds.ParentBounds = null;
         }

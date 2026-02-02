@@ -1,6 +1,7 @@
 ﻿using MNGui.Extensions;
 using MNGui.GuiElements;
 using MNGui.Layouts;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Vintagestory.API.Client;
@@ -41,11 +42,12 @@ public class StandardDialogController {
         return null;
     }
 
-    public void OnBoundsUpdated() {
+    public void OnBoundsUpdated(Action? otherCall = null) {
         var container = GetMainContainerElement();
         if (container == null) return;
 
         capi.Event.RegisterCallback(dt => {
+            otherCall?.Invoke();
             // TODO: Cleaner re-layouting - Separate InitElements from Measure
 
             if (ChildLayout is LayoutWithElementBounds lweb) {

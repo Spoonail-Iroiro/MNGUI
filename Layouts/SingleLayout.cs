@@ -53,6 +53,10 @@ internal class SingleLayout : LayoutWithElementBounds {
         if (InitialBounds == null) {
             InitialBounds = Element.Bounds.FlatCopy();
         }
+
+        if (Element is ILayoutableElement lelement) {
+            lelement.Init();
+        }
     }
 
     protected override void MeasureInternal() {
@@ -65,6 +69,9 @@ internal class SingleLayout : LayoutWithElementBounds {
         }
 
         // TODO: Element-specific auto calc such as AutoHeight()
+        if (Element is ILayoutableElement lelement) {
+            lelement.BeforeMeasure();
+        }
         Element.BeforeCalcBounds();
         Element.Bounds.CalcWorldBounds();
         //if (Element is GuiElementDynamicText gedt) {
@@ -102,6 +109,10 @@ internal class SingleLayout : LayoutWithElementBounds {
         }
         else {
             throw new NotImplementedException("SizePolicy should be FitToChildren");
+        }
+
+        if (Element is ILayoutableElement lelement) {
+            lelement.AfterArrange();
         }
     }
 

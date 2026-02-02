@@ -168,7 +168,7 @@ public class MNGuiElementContainer : GuiElement {
     public void Clear() {
         Elements.Clear();
         NamedElements.Clear();
-        Bounds.ChildBounds.Clear();
+        Bounds.RemoveAllChildBounds();
         currentFocusableElementKey = 0;
         Tabbable = false;
     }
@@ -201,7 +201,7 @@ public class MNGuiElementContainer : GuiElement {
     }
 
     public void SetChildBound(ElementBounds bounds) {
-        Bounds.ChildBounds.Clear();
+        Bounds.RemoveAllChildBounds();
         Bounds.WithChildForce(bounds);
         //Bounds.ChildBounds.Add(bounds);
         //bounds.ParentBounds = Bounds;
