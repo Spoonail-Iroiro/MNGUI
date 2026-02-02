@@ -1,6 +1,7 @@
 ﻿using MNGui.Extensions;
 using MNGui.GuiElements;
 using MNGui.Layouts;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Vintagestory.API.Client;
@@ -14,10 +15,16 @@ public class StandardDialogController {
 
     public GuiComposer Composer { get; protected set; }
 
-    public StandardDialogController(ICoreClientAPI capi, GuiComposer composer, LayoutBase childLayout) {
+    public StandardDialogController(ICoreClientAPI capi, GuiComposer composer, LayoutBase childLayout, bool isRoot = true) {
         this.capi = capi;
         ChildLayout = childLayout;
         Composer = composer;
+
+        if (isRoot) {
+            var container = GetMainContainerElement();
+            container.EventLayoutApplied = fromThis => { OnBoundsUpdated(); return true; };
+
+        }
     }
 
     public MNGuiElementContainer? GetMainContainerElement() {
@@ -45,30 +52,25 @@ public class StandardDialogController {
         var container = GetMainContainerElement();
         if (container == null) return;
 
-        capi.Event.RegisterCallback(dt => {
-            // TODO: Cleaner re-layouting - Separate InitElements from Measure
+        if (ChildLayout is LayoutWithElementBounds lweb) {
+            //container.Clear();
 
-            if (ChildLayout is LayoutWithElementBounds lweb) {
-                //container.Clear();
+            ChildLayout.Measure();
 
-                ChildLayout.Measure();
+            //foreach (var elementInfo in ChildLayout.GetAllGuiElements()) {
+            //    container.Add(elementInfo.Element, elementInfo.Name);
+            //}
 
-                //foreach (var elementInfo in ChildLayout.GetAllGuiElements()) {
-                //    container.Add(elementInfo.Element, elementInfo.Name);
-                //}
+            //container.SetChildBound(lweb.Bounds!);
 
-                //container.SetChildBound(lweb.Bounds!);
+            container.Bounds.CalcWorldBounds();
 
-                container.Bounds.CalcWorldBounds();
+            lweb.ArrangeWithMinSize();
 
-                lweb.ArrangeWithMinSize();
+            Composer.ReCompose();
 
-                Composer.ReCompose();
-
-                GetScrollbarElement()?.OnBoundsUpdated();
-            }
-        },
-        0);
+            GetScrollbarElement()?.OnBoundsUpdated();
+        }
     }
 
 }

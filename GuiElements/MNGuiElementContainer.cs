@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Vintagestory.API.Client;
+using Vintagestory.API.Common;
 using Vintagestory.API.MathTools;
 
 namespace MNGui.GuiElements;
@@ -27,6 +28,10 @@ public class MNGuiElementContainer : GuiElement {
     public override bool Focusable { get { return Tabbable; } }
 
     protected int currentFocusableElementKey;
+
+    public ActionConsumable<bool>? EventLayoutApplied { get; set; }
+
+    protected Action? EventNotifyLayoutAppliedToParent { get; set; }
 
     public MNGuiElementContainer(ICoreClientAPI capi, ElementBounds bounds) : base(capi, bounds) {
         contentTexture = new LoadedTexture(capi);
@@ -165,22 +170,29 @@ public class MNGuiElementContainer : GuiElement {
     /// <summary>
     /// Reset states. Elements are not disposed for re-adding
     /// </summary>
-    public void Clear() {
+    public virtual void ClearContent() {
+        foreach (var elem in Elements) {
+            if (elem is MNGuiElementContainer container) {
+                container.OnRemovedFromContainer(this);
+            }
+        }
         Elements.Clear();
         NamedElements.Clear();
-        Bounds.ChildBounds.Clear();
+        Bounds.RemoveAllChildBounds();
         currentFocusableElementKey = 0;
         Tabbable = false;
+
+        // Events are not content, so handlers are not cleared here
     }
 
     /// <summary>
     /// Clear + element.Dispose for each element in Elements. Mainly for before constructing and adding new layouts and GuiElements
     /// </summary>
-    public void DiscardContent() {
+    public virtual void DiscardContent() {
         foreach (var element in Elements) {
             element.Dispose();
         }
-        Clear();
+        ClearContent();
     }
 
     public void Add(GuiElement elem, string? name = null) {
@@ -198,10 +210,14 @@ public class MNGuiElementContainer : GuiElement {
         }
 
         elem.InsideClipBounds = InsideClipBounds;
+
+        if (elem is MNGuiElementContainer container) {
+            container.OnAddedToContainer(this);
+        }
     }
 
     public void SetChildBound(ElementBounds bounds) {
-        Bounds.ChildBounds.Clear();
+        Bounds.RemoveAllChildBounds();
         Bounds.WithChildForce(bounds);
         //Bounds.ChildBounds.Add(bounds);
         //bounds.ParentBounds = Bounds;
@@ -390,6 +406,10 @@ public class MNGuiElementContainer : GuiElement {
         foreach (var val in Elements) {
             val.Dispose();
         }
+        ClearContent();
+
+        EventLayoutApplied = null;
+        EventNotifyLayoutAppliedToParent = null;
     }
 
     public override void RenderBoundsDebug() {
@@ -408,6 +428,54 @@ public class MNGuiElementContainer : GuiElement {
     public override int OutlineColor() {
         var intVal = ColorUtil.ToRgba(255, 128, 255, 128);
         return intVal;
+    }
+
+    /// <summary>
+    /// API to parent: should be called when this container is added to the parent
+    /// </summary>
+    /// <param name="parentContainer"></param>
+    protected void OnAddedToContainer(MNGuiElementContainer parentContainer) {
+        EventNotifyLayoutAppliedToParent = parentContainer.OnChildContainerNotifyLayoutApplied;
+
+    }
+
+    /// <summary>
+    /// API to parent: should be called when this container is removed from the parent
+    /// </summary>
+    /// <param name="parentContainer"></param>
+    protected void OnRemovedFromContainer(MNGuiElementContainer parentContainer) {
+        if (EventNotifyLayoutAppliedToParent == parentContainer.OnChildContainerNotifyLayoutApplied) {
+            EventNotifyLayoutAppliedToParent = null;
+        }
+    }
+
+    /// <summary>
+    /// Handler when received notification of LayoutApplied from a child container
+    /// </summary>
+    internal void OnChildContainerNotifyLayoutApplied() {
+        NotifyExternalThenPropagate(false);
+    }
+
+    /// <summary>
+    /// Notify this containe's layout is changed and need to be re-layout (Measure and Arrange), to external handler and (unless it's consumed,) parent
+    /// </summary>
+    /// <remarks>
+    /// MNGuiElementContainer has no timing to notify by itself, so this need to be called from outside when elements are ready
+    /// </remarks>
+    public void NotifyLayoutApplied() {
+        NotifyExternalThenPropagate(true);
+    }
+
+    protected void NotifyExternalThenPropagate(bool fromThis) {
+        api.Logger.Event($"Notifying Layout Applied, {Bounds.Name}: {fromThis}");
+        // The arg to handler is true because it's notified from a child
+        var consumed = EventLayoutApplied?.Invoke(fromThis);
+
+        // If the event is consumed, don't propagate to parent
+        if (consumed == true) return;
+
+        // Propagate to parent
+        EventNotifyLayoutAppliedToParent?.Invoke();
     }
 }
 
