@@ -15,10 +15,16 @@ public class StandardDialogController {
 
     public GuiComposer Composer { get; protected set; }
 
-    public StandardDialogController(ICoreClientAPI capi, GuiComposer composer, LayoutBase childLayout) {
+    public StandardDialogController(ICoreClientAPI capi, GuiComposer composer, LayoutBase childLayout, bool isRoot = true) {
         this.capi = capi;
         ChildLayout = childLayout;
         Composer = composer;
+
+        if (isRoot) {
+            var container = GetMainContainerElement();
+            container.EventLayoutApplied = fromThis => { OnBoundsUpdated(); return true; };
+
+        }
     }
 
     public MNGuiElementContainer? GetMainContainerElement() {

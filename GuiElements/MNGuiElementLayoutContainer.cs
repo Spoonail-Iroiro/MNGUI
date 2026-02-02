@@ -4,6 +4,7 @@ using MNGui.GuiElements.Layout;
 using MNGui.Layouts;
 using System.Diagnostics.CodeAnalysis;
 using Vintagestory.API.Client;
+using Vintagestory.API.Common;
 
 namespace MNGui.GuiElements;
 public class MNGuiElementLayoutContainer : MNGuiElementContainer, ILayoutableElement {
@@ -12,9 +13,12 @@ public class MNGuiElementLayoutContainer : MNGuiElementContainer, ILayoutableEle
 
     protected LayoutWithElementBounds? PendingNewLayout { get; set; }
 
+    /// Default layout Must not need to be disposed, since it might remain after container's Dispose
+    protected LayoutWithElementBounds DefaultLayout => new VerticalLayout(api).Add(new GuiElementDebugHorizontalLayout(api, ElementBounds.FixedSize(1, 1)), "temp");
+
     public MNGuiElementLayoutContainer(ICoreClientAPI capi, ElementBounds bounds) : base(capi, bounds) {
         // Initial Layout
-        var layout = new VerticalLayout(capi).Add(new GuiElementDebugHorizontalLayout(capi, ElementBounds.FixedSize(1, 1)), "temp");
+        var layout = DefaultLayout;
         ApplyNewLayoutImmediately(layout);
     }
 
@@ -23,6 +27,7 @@ public class MNGuiElementLayoutContainer : MNGuiElementContainer, ILayoutableEle
     /// </summary>
     /// <remarks>
     /// Reusing layout is not recommended since this discards all.
+    /// LayoutApplied will be notified on actual apply.
     /// </remarks>
     public void SetNewLayout(LayoutWithElementBounds newLayout) {
         // Will be actually applied when ResolvePendingNewLayout is called
@@ -33,7 +38,8 @@ public class MNGuiElementLayoutContainer : MNGuiElementContainer, ILayoutableEle
     /// Discard old elements and set elements and child bound from passed layout. Warning: Not safe in an event handler. Generally, use SetNewLayout instead.
     /// </summary>
     /// <remarks>
-    /// Reusing layout is not recommended since this discards all. Also, Not safe in an event handler.
+    /// Reusing layout is not recommended since this discards all. Also, it's not safe called in an event handler.
+    /// LayoutApplied will be notified.
     /// </remarks>
     [MemberNotNull(nameof(ChildLayout))]
     public void ApplyNewLayoutImmediately(LayoutWithElementBounds layout) {
@@ -50,6 +56,9 @@ public class MNGuiElementLayoutContainer : MNGuiElementContainer, ILayoutableEle
         }
 
         SetChildBound(ChildLayout.Bounds!);
+
+        // Notify layout actually applied, to outside and parent
+        NotifyLayoutApplied();
     }
 
     protected void ResolvePendingNewLayout() {
@@ -57,6 +66,13 @@ public class MNGuiElementLayoutContainer : MNGuiElementContainer, ILayoutableEle
             ApplyNewLayoutImmediately(PendingNewLayout);
             PendingNewLayout = null;
         }
+    }
+
+    public override void ClearContent() {
+        base.ClearContent();
+        ChildLayout = DefaultLayout;
+        PendingNewLayout = null;
+        // Tied actions are not content, so not cleared here
     }
 
     public void Init() {
