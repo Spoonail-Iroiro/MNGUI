@@ -42,35 +42,29 @@ public class StandardDialogController {
         return null;
     }
 
-    public void OnBoundsUpdated(Action? otherCall = null) {
+    public void OnBoundsUpdated() {
         var container = GetMainContainerElement();
         if (container == null) return;
 
-        capi.Event.RegisterCallback(dt => {
-            otherCall?.Invoke();
-            // TODO: Cleaner re-layouting - Separate InitElements from Measure
+        if (ChildLayout is LayoutWithElementBounds lweb) {
+            //container.Clear();
 
-            if (ChildLayout is LayoutWithElementBounds lweb) {
-                //container.Clear();
+            ChildLayout.Measure();
 
-                ChildLayout.Measure();
+            //foreach (var elementInfo in ChildLayout.GetAllGuiElements()) {
+            //    container.Add(elementInfo.Element, elementInfo.Name);
+            //}
 
-                //foreach (var elementInfo in ChildLayout.GetAllGuiElements()) {
-                //    container.Add(elementInfo.Element, elementInfo.Name);
-                //}
+            //container.SetChildBound(lweb.Bounds!);
 
-                //container.SetChildBound(lweb.Bounds!);
+            container.Bounds.CalcWorldBounds();
 
-                container.Bounds.CalcWorldBounds();
+            lweb.ArrangeWithMinSize();
 
-                lweb.ArrangeWithMinSize();
+            Composer.ReCompose();
 
-                Composer.ReCompose();
-
-                GetScrollbarElement()?.OnBoundsUpdated();
-            }
-        },
-        0);
+            GetScrollbarElement()?.OnBoundsUpdated();
+        }
     }
 
 }
