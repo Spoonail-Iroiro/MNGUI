@@ -8,7 +8,7 @@ namespace MNGui.Layouts;
 
 // Layout with single element.
 // If SizePolicy is FitToChildren, this layout uses Element.Bounds as is; otherwise, change Element.Bounds to fixed size to change it to availableSize passed from parent.
-internal class SingleLayout : LayoutWithElementBounds {
+public class SingleLayout : LayoutWithElementBounds {
     // Bounds to calc MinSize
     protected ElementBounds? InitialBounds { get; set; } = null;
 
@@ -25,7 +25,7 @@ internal class SingleLayout : LayoutWithElementBounds {
     /// </summary>
     /// <param name="guiElement"></param>
     /// <param name="name">Name for this layout, and also a part of the name of the element's bounds if it doesn't have one yet</param>
-    public SingleLayout(GuiElement guiElement, string name = null) {
+    public SingleLayout(GuiElement guiElement, string? name = null) {
         Element = guiElement;
         if (name != null) {
             Name = name;

@@ -13,7 +13,7 @@ using Vintagestory.API.Config;
 namespace MNGui.Layouts;
 
 
-internal class VerticalLayout : LenearLayoutBase {
+public class VerticalLayout : LenearLayoutBase {
 
     public VerticalLayoutAlignment Alignment { get; private set; }
 
