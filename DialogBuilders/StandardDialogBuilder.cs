@@ -111,7 +111,8 @@ namespace MNGui.DialogBuilders {
             composer.Compose();
 
             var mainScrollBar = composer.GetElement<MNGuiElementVerticalScrollbar>(ScrollbarName)!;
-            mainScrollBar.InitViewAndContentBounds(clipBounds, containerBounds);
+            mainScrollBar.SetViewAndContentBounds(clipBounds, containerBounds);
+            mainScrollBar.OnBoundsUpdated();
 
             return composer;
         }

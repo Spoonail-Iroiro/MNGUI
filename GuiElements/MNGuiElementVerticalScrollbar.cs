@@ -1,4 +1,5 @@
-﻿using MNGui.Extensions;
+﻿using Cairo;
+using MNGui.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,17 +18,14 @@ public class MNGuiElementVerticalScrollbar : GuiElementScrollbar {
 
     protected void onNewScrollbarValueHandler(float newValue) {
         if (ContentBounds == null) return;
-        ContentBounds.fixedY = ContentInitialFixedY - newValue;
+        // Scroll by offset not to remember initial fixedY
+        ContentBounds.fixedOffsetY = -newValue;
         ContentBounds.CalcWorldBounds();
     }
 
-    public void InitViewAndContentBounds(ElementBounds viewBounds, ElementBounds contentBounds) {
+    public void SetViewAndContentBounds(ElementBounds viewBounds, ElementBounds contentBounds) {
         ViewBounds = viewBounds;
         ContentBounds = contentBounds;
-
-        ContentInitialFixedY = ContentBounds.fixedY;
-
-        SetHeights((float)ViewBounds.UnscaledOuterHeight(), (float)ContentBounds.UnscaledOuterHeight());
     }
 
     /// <summary>
@@ -35,7 +33,21 @@ public class MNGuiElementVerticalScrollbar : GuiElementScrollbar {
     /// </summary>
     public void OnBoundsUpdated() {
         if (ViewBounds != null && ContentBounds != null) {
-            SetHeights(ViewBounds.OuterHeightInt, ContentBounds.OuterHeightInt);
+            SetHeights((float)ViewBounds.UnscaledOuterHeight(), (float)ContentBounds.UnscaledOuterHeight());
         }
+    }
+
+    public override void OnMouseWheel(ICoreClientAPI api, MouseWheelEventArgs args) {
+        if (ViewBounds == null || ContentBounds == null) return;
+        if (ViewBounds.PointInside(api.Input.MouseX, api.Input.MouseY) || Bounds.PointInside(api.Input.MouseX, api.Input.MouseY)) {
+            base.OnMouseWheel(api, args);
+        }
+    }
+
+    public override void ComposeElements(Context ctxStatic, ImageSurface surface) {
+        Bounds.CalcWorldBounds();
+        // Set new height from view and content bounds, since this point is usually after all Arrange
+        OnBoundsUpdated();
+        base.ComposeElements(ctxStatic, surface);
     }
 }
