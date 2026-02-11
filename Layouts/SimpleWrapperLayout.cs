@@ -9,20 +9,22 @@ namespace MNGui.Layouts;
 
 // For wrapper-type GuiElement with single child layout
 public class SimpleWrapperLayout : SingleLayout {
-    public LayoutBase? ChildLayout { get; set; }
+    public List<LayoutBase> ChildLayouts { get; set; } = new();
 
     public SimpleWrapperLayout(GuiElement guiElement, string? name = null) : base(guiElement, name) {
     }
 
-    public SimpleWrapperLayout SetChild(LayoutBase layout) {
-        ChildLayout = layout;
+    public SimpleWrapperLayout Add(LayoutBase layout) {
+        ChildLayouts.Add(layout);
         return this;
     }
 
     public override void Init() {
         base.Init();
 
-        ChildLayout?.Init();
+        foreach (LayoutBase layout in ChildLayouts) {
+            layout.Init();
+        }
     }
 
     protected override void MeasureInternal() {
@@ -31,16 +33,18 @@ public class SimpleWrapperLayout : SingleLayout {
         var hGreedings = new List<SpaceGreedingPolicy>();
         var vGreedings = new List<SpaceGreedingPolicy>();
 
-        if (ChildLayout is LayoutWithElementBounds lweb) {
-            lweb.Measure();
-            Bounds.WithChildForce(lweb.Bounds);
+        foreach (var childLayout in ChildLayouts) {
+            if (childLayout is LayoutWithElementBounds lweb) {
+                lweb.Measure();
+                Bounds.WithChildForce(lweb.Bounds);
 
-            // SpaceGreedings from child
-            hGreedings.Add(lweb.HorizontalSpaceGreedingPolicy);
-            vGreedings.Add(lweb.VerticalSpaceGreedingPolicy);
-        }
-        else {
-            throw new NotImplementedException();
+                // SpaceGreedings from child
+                hGreedings.Add(lweb.HorizontalSpaceGreedingPolicy);
+                vGreedings.Add(lweb.VerticalSpaceGreedingPolicy);
+            }
+            else {
+                throw new NotImplementedException();
+            }
         }
 
         base.MeasureInternal();
@@ -55,19 +59,27 @@ public class SimpleWrapperLayout : SingleLayout {
     public override void Arrange(Vec2 fixedPos, Size availableSize) {
         base.Arrange(fixedPos, availableSize);
 
-        if (ChildLayout is LayoutWithElementBounds lweb) {
-            if (lweb.Bounds == null) throw new InvalidOperationException($"Call Measure before Arrange!");
-            lweb.Arrange(new Vec2(lweb.Bounds.fixedX, lweb.Bounds.fixedY), lweb.MinSize);
+        foreach (var childLayout in ChildLayouts) {
+            if (childLayout is LayoutWithElementBounds lweb) {
+                if (lweb.Bounds == null) throw new InvalidOperationException($"Call Measure before Arrange!");
+                lweb.Arrange(new Vec2(lweb.Bounds.fixedX, lweb.Bounds.fixedY), lweb.MinSize);
+            }
+            else {
+                throw new NotImplementedException();
+            }
         }
-        else {
-            throw new NotImplementedException();
-        }
-
     }
 
     public override IEnumerable<GuiElementInfo> GetAllGuiElements() {
-        var rtn = base.GetAllGuiElements();
-        if (ChildLayout != null) rtn = rtn.Concat(ChildLayout.GetAllGuiElements());
-        return rtn;
+        var baseRtn = base.GetAllGuiElements();
+        foreach (var layout in baseRtn) {
+            yield return layout;
+        }
+
+        foreach (var layout in ChildLayouts) {
+            foreach (var elem in layout.GetAllGuiElements()) {
+                yield return elem;
+            }
+        }
     }
 }
