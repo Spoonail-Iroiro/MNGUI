@@ -6,13 +6,25 @@ using Vintagestory.API.Client;
 
 namespace MNGui.Layouts;
 
+// How SingleLayout adjust actual Bounds of the element: not the same as SizePolicy, which tells the parent sizing preference
+public enum ElementSizeConstraint {
+    RawBounds,
+    // Everytime Measure, it recovers initial bounds and calc children MinSize, then limit it to MaxSize
+    // Usually used with FitToChildren, for clip element - FitToChildren if under MaxSize, otherwise limit
+    LimitToMax
+}
+
 // Layout with single element.
-// If SizePolicy is FitToChildren, this layout uses Element.Bounds as is; otherwise, change Element.Bounds to fixed size to change it to availableSize passed from parent.
 public class SingleLayout : LayoutWithElementBounds {
     // Bounds to calc MinSize
     protected ElementBounds? InitialBounds { get; set; } = null;
 
     public GuiElement Element { get; private set; }
+
+    public ElementSizeConstraint HorizontalElementSizeConstraint { get; set; } = ElementSizeConstraint.RawBounds;
+    public ElementSizeConstraint VerticalElementSizeConstraint { get; set; } = ElementSizeConstraint.RawBounds;
+    public double MaxWidth { get; set; } = double.MaxValue;
+    public double MaxHeight { get; set; } = double.MaxValue;
 
     public override ElementBounds Bounds => Element.Bounds;
 
@@ -49,6 +61,26 @@ public class SingleLayout : LayoutWithElementBounds {
         return this;
     }
 
+    protected void WithMaxWidthInternal(double maxWidth) {
+        HorizontalElementSizeConstraint = ElementSizeConstraint.LimitToMax;
+        MaxWidth = maxWidth;
+    }
+
+    public SingleLayout WithMaxWidth(double maxWidth) {
+        WithMaxWidthInternal(maxWidth);
+        return this;
+    }
+
+    protected void WithMaxHeightInternal(double maxHeight) {
+        VerticalElementSizeConstraint = ElementSizeConstraint.LimitToMax;
+        MaxHeight = maxHeight;
+    }
+
+    public SingleLayout WithMaxHeight(double maxHeight) {
+        WithMaxHeightInternal(maxHeight);
+        return this;
+    }
+
     public override void Init() {
         if (InitialBounds == null) {
             InitialBounds = Element.Bounds.FlatCopy();
@@ -60,11 +92,11 @@ public class SingleLayout : LayoutWithElementBounds {
     }
 
     protected override void MeasureInternal() {
-        // "Recover" initial state unless the size policy is FtC
-        if (HorizontalSizePolicy != SizePolicy.FitToChildren) {
+        // "Recover" initial state unless when constraint is RawBounds
+        if (HorizontalElementSizeConstraint != ElementSizeConstraint.RawBounds) {
             Element.Bounds.CopyHorizontalFixedPropertiesFrom(InitialBounds!);
         }
-        if (VerticalSizePolicy != SizePolicy.FitToChildren) {
+        if (VerticalElementSizeConstraint != ElementSizeConstraint.RawBounds) {
             Element.Bounds.CopyVerticalFixedPropertiesFrom(InitialBounds!);
         }
 
@@ -74,12 +106,14 @@ public class SingleLayout : LayoutWithElementBounds {
         }
         Element.BeforeCalcBounds();
         Element.Bounds.CalcWorldBounds();
-        //if (Element is GuiElementDynamicText gedt) {
-        //    if (gedt.autoHeight) gedt.AutoHeight();
-        //}
 
         if (HorizontalSizePolicy == SizePolicy.FitToChildren) {
-
+            if (HorizontalElementSizeConstraint == ElementSizeConstraint.LimitToMax) {
+                if (Element.Bounds.UnscaledOuterWidth() > MaxWidth) {
+                    Element.Bounds.WithUnscaledOuterWidth(MaxWidth);
+                    Element.Bounds.CalcWorldBounds();
+                }
+            }
         }
         else {
             HorizontalSpaceGreedingPolicy = SpaceGreedingPolicy.Greeding;
@@ -87,7 +121,12 @@ public class SingleLayout : LayoutWithElementBounds {
         }
 
         if (VerticalSizePolicy == SizePolicy.FitToChildren) {
-
+            if (VerticalElementSizeConstraint == ElementSizeConstraint.LimitToMax) {
+                if (Element.Bounds.UnscaledOuterHeight() > MaxHeight) {
+                    Element.Bounds.WithUnscaledOuterHeight(MaxHeight);
+                    Element.Bounds.CalcWorldBounds();
+                }
+            }
         }
         else {
             VerticalSpaceGreedingPolicy = SpaceGreedingPolicy.Greeding;

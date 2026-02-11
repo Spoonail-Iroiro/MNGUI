@@ -74,6 +74,16 @@ internal static class ElementBoundsExtension {
         elementBounds.WithFixedHeight(unscaledHeight - 2.0 * elementBounds.fixedPaddingY);
     }
 
+    public static ElementBounds WithHorizontalSizing(this ElementBounds elementBounds, ElementSizing sizing) {
+        elementBounds.horizontalSizing = sizing;
+        return elementBounds;
+    }
+
+    public static ElementBounds WithVerticalSizing(this ElementBounds elementBounds, ElementSizing sizing) {
+        elementBounds.verticalSizing = sizing;
+        return elementBounds;
+    }
+
     /// <summary>
     /// vanilla ElementBounds.WithChild EASILY CREATE INCOSISTENT BOUNDS TREE. This prevents that.
     /// </summary>

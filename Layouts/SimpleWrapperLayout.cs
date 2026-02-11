@@ -14,6 +14,16 @@ public class SimpleWrapperLayout : SingleLayout {
     public SimpleWrapperLayout(GuiElement guiElement, string? name = null) : base(guiElement, name) {
     }
 
+    new public SimpleWrapperLayout WithMaxWidth(double maxWidth) {
+        WithMaxWidthInternal(maxWidth);
+        return this;
+    }
+
+    new public SimpleWrapperLayout WithMaxHeight(double maxHeight) {
+        WithMaxHeightInternal(maxHeight);
+        return this;
+    }
+
     public SimpleWrapperLayout Add(LayoutBase layout) {
         ChildLayouts.Add(layout);
         return this;
