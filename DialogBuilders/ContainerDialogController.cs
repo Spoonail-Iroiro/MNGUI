@@ -31,10 +31,19 @@ public class ContainerDialogController {
     }
 
     public T? GetElement<T>(string name) where T : class {
-        var container = GetMainContainerElement();
-        if (container != null) {
+        var stack = new Stack<MNGuiElementContainer>();
+        var mainContainer = GetMainContainerElement();
+        if (mainContainer != null) stack.Push(mainContainer);
+        while (stack.Count > 0) {
+            var container = stack.Pop();
             var containerElement = container.NamedElements!.Get(name) as T;
             if (containerElement != null) return containerElement;
+
+            foreach (var elem in container.Elements) {
+                if (elem is MNGuiElementContainer childContainer) {
+                    stack.Push(childContainer);
+                }
+            }
         }
 
         var composerElement = Composer.GetElement<T>(name);
