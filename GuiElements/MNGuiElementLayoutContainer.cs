@@ -32,6 +32,8 @@ public class MNGuiElementLayoutContainer : MNGuiElementContainer, ILayoutableEle
     public void SetNewLayout(LayoutWithElementBounds newLayout) {
         // Will be actually applied when ResolvePendingNewLayout is called
         PendingNewLayout = newLayout;
+        // Hacky, ensuring resolution of layout outside of event handler
+        api.Event.RegisterCallback(dt => ResolvePendingNewLayout(), 0);
     }
 
     /// <summary>

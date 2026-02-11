@@ -467,7 +467,6 @@ public class MNGuiElementContainer : GuiElement {
     }
 
     protected void NotifyExternalThenPropagate(bool fromThis) {
-        api.Logger.Event($"Notifying Layout Applied, {Bounds.Name}: {fromThis}");
         // The arg to handler is true because it's notified from a child
         var consumed = EventLayoutApplied?.Invoke(fromThis);
 
