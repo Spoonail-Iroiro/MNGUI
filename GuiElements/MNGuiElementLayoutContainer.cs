@@ -14,7 +14,7 @@ public class MNGuiElementLayoutContainer : MNGuiElementContainer, ILayoutableEle
     protected LayoutWithElementBounds? PendingNewLayout { get; set; }
 
     /// Default layout Must not need to be disposed, since it might remain after container's Dispose
-    protected LayoutWithElementBounds DefaultLayout => new VerticalLayout(api).Add(new GuiElementDebugHorizontalLayout(api, ElementBounds.FixedSize(1, 1)), "temp");
+    protected LayoutWithElementBounds DefaultLayout => new VerticalLayout(api).Add(new GuiElementDummy(api, ElementBounds.FixedSize(1, 1)), "temp");
 
     public MNGuiElementLayoutContainer(ICoreClientAPI capi, ElementBounds bounds, LayoutWithElementBounds? initialLayout = null) : base(capi, bounds) {
         // Initial Layout
