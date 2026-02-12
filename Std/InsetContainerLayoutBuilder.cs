@@ -56,9 +56,11 @@ public class InsetContainerLayoutBuilder {
     public InsetContainerLayoutBuilder WithFitToChildren(BoxSide side) {
         if (side == BoxSide.Horizontal) {
             horizontalSizePolicy = InsetContainerSizePolicy.FitToChildren;
+            minWidth = 0.0;
         }
         else {
-            horizontalSizePolicy = InsetContainerSizePolicy.FitToChildren;
+            verticalSizePolicy = InsetContainerSizePolicy.FitToChildren;
+            minHeight = 0.0;
         }
         return this;
     }
@@ -71,7 +73,7 @@ public class InsetContainerLayoutBuilder {
             maxWidth = MaxLength;
         }
         else {
-            horizontalSizePolicy = InsetContainerSizePolicy.FitToChildrenRange;
+            verticalSizePolicy = InsetContainerSizePolicy.FitToChildrenRange;
             minHeight = 0.0;
             maxHeight = MaxLength;
         }
@@ -133,7 +135,7 @@ public class InsetContainerLayoutBuilder {
 
         if (hasScrollbar) {
             // TODO: proper scrollbar layouting
-            var scrollbarHeight = (minHeight > 10.0 ? minHeight : 100) + padding * 2;
+            var scrollbarHeight = (minHeight > 10.0 ? minHeight : 10) + padding * 2;
             var scrollbar = new MNGuiElementVerticalScrollbar(capi, ElementBounds.FixedSize(20, scrollbarHeight));
             var scrollBarLayout = new SingleLayout(scrollbar);
             scrollbar.SetViewAndContentBounds(clipStartLayout.Bounds, containerLayout.Bounds);
