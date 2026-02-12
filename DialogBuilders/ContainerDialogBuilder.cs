@@ -45,7 +45,7 @@ public class ContainerDialogBuilder {
         bgBounds.BothSizing = ElementSizing.FitToChildren;
 
         var containerBounds = bgBounds.ForkContainingChild();
-        containerBounds.WithFixedPadding(5.0);
+        containerBounds.WithFixedPadding(2.0);
         containerBounds.fixedY = GuiStyle.TitleBarHeight;
         containerBounds.BothSizing = ElementSizing.FitToChildren;
         containerBounds.Name = "bounds-container";
