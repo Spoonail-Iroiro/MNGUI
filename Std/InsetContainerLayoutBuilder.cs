@@ -34,6 +34,10 @@ public class InsetContainerLayoutBuilder {
 
     bool hasScrollbar = true;
 
+    bool isClipEnabled = true;
+
+    double containerPadding = 2.0;
+
     LayoutWithElementBounds? containerInitialLayout;
 
     public InsetContainerLayoutBuilder(ICoreClientAPI capi, string containerName) {
@@ -85,27 +89,35 @@ public class InsetContainerLayoutBuilder {
         return this;
     }
 
+    public InsetContainerLayoutBuilder WithClip(bool enabled) {
+        isClipEnabled = enabled;
+        return this;
+    }
+
     public InsetContainerLayoutBuilder WithInitialLayout(LayoutWithElementBounds layout) {
         containerInitialLayout = layout;
         return this;
     }
 
-    public LayoutBase Build() {
-        var elementStd = new ElementStd(capi);
-        var padding = 5.0;
+    /// <summary>
+    /// Set containe's padding, for preventing elements drawing outside of their bounds from being clippled slightly
+    /// </summary>
+    /// <param name="padding"></param>
+    /// <returns></returns>
+    public InsetContainerLayoutBuilder WithContainerPadding(double padding) {
+        containerPadding = padding;
+        return this;
+    }
 
-        var rowLayout = new HorizontalLayout(capi, 3);
-        var insetLayout = new SimpleWrapperLayout(new MNGuiElementInset(capi, BoundsStd.FitToChildren()));
-        var clipParentLayout = new SimpleWrapperLayout(new GuiElementDummy(capi, BoundsStd.FitToChildren().WithFixedPadding(padding)));
-
+    SimpleWrapperLayout CreateClipStartLayouts() {
         var clipBounds = ElementBounds.FixedSize(minWidth, minHeight);
+        var clipStartLayout = new SimpleWrapperLayout(isClipEnabled ? new MNGuiElementClipStart(capi, clipBounds) : new GuiElementDummy(capi, clipBounds));
         if (horizontalSizePolicy != InsetContainerSizePolicy.Fixed) {
             clipBounds.horizontalSizing = ElementSizing.FitToChildren;
         }
         if (verticalSizePolicy != InsetContainerSizePolicy.Fixed) {
             clipBounds.verticalSizing = ElementSizing.FitToChildren;
         }
-        var clipStartLayout = new SimpleWrapperLayout(new MNGuiElementClipStart(capi, clipBounds));
         if (horizontalSizePolicy == InsetContainerSizePolicy.FitToChildrenRange) {
             clipStartLayout.WithMaxWidth(maxWidth);
         }
@@ -113,8 +125,29 @@ public class InsetContainerLayoutBuilder {
             clipStartLayout.WithMaxHeight(maxHeight);
         }
 
-        var clipEndLayout = new SimpleWrapperLayout(new MNGuiElementClipEnd(capi));
-        var containerLayout = new SingleLayout(new MNGuiElementLayoutContainer(capi, BoundsStd.FitToChildren(), containerInitialLayout), containerName);
+        return clipStartLayout;
+
+        //if (!isClipEnabled) {
+        //    yield break;
+        //}
+
+        //var clipEndLayout = new SimpleWrapperLayout(new MNGuiElementClipEnd(capi));
+
+        //yield return clipEndLayout;
+    }
+
+    public LayoutWithElementBounds Build() {
+        var elementStd = new ElementStd(capi);
+        var padding = 5.0;
+
+        var rowLayout = new HorizontalLayout(capi, 3);
+        var insetLayout = new SimpleWrapperLayout(new MNGuiElementInset(capi, BoundsStd.FitToChildren()));
+        var clipParentLayout = new SimpleWrapperLayout(new GuiElementDummy(capi, BoundsStd.FitToChildren().WithFixedPadding(padding)));
+
+        var containerLayout = new SingleLayout(new MNGuiElementLayoutContainer(capi, BoundsStd.FitToChildren().WithFixedPadding(containerPadding), containerInitialLayout), containerName);
+
+        var clipStartLayout = CreateClipStartLayouts();
+        var clipEndLayout = isClipEnabled ? new SimpleWrapperLayout(new MNGuiElementClipEnd(capi)) : new SingleLayout(new GuiElementDummy(capi, ElementBounds.FixedSize(1, 1)));
 
         rowLayout
             .Add(
