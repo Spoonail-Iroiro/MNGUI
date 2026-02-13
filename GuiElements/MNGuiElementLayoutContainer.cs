@@ -83,6 +83,7 @@ public class MNGuiElementLayoutContainer : MNGuiElementContainer, ILayoutableEle
     public void BeforeMeasure() {
         ChildLayout.Measure();
 
+        BeforeCalcBounds();
         Bounds.CalcWorldBounds();
 
         return;
