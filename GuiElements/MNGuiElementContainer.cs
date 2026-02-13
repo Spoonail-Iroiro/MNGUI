@@ -29,6 +29,21 @@ public class MNGuiElementContainer : GuiElement {
 
     protected int currentFocusableElementKey;
 
+    protected Stack<ElementBounds> InsideClipBoundsStack = new();
+
+    public override ElementBounds InsideClipBounds {
+        get => base.InsideClipBounds;
+        set {
+            foreach (var element in Elements) {
+                if (element.InsideClipBounds == base.InsideClipBounds) {
+                    element.InsideClipBounds = value;
+                }
+            }
+
+            base.InsideClipBounds = value;
+        }
+    }
+
     public ActionConsumable<bool>? EventLayoutApplied { get; set; }
 
     protected Action? EventNotifyLayoutAppliedToParent { get; set; }
@@ -179,6 +194,7 @@ public class MNGuiElementContainer : GuiElement {
         Elements.Clear();
         NamedElements.Clear();
         Bounds.RemoveAllChildBounds();
+        InsideClipBoundsStack.Clear();
         currentFocusableElementKey = 0;
         Tabbable = false;
 
@@ -209,7 +225,20 @@ public class MNGuiElementContainer : GuiElement {
             elem.TabIndex = -1;
         }
 
-        elem.InsideClipBounds = InsideClipBounds;
+        if (elem is MNGuiElementClipStart clipStart) {
+            InsideClipBoundsStack.Push(clipStart.Bounds);
+        }
+        else if (elem is MNGuiElementClipEnd clipEnd) {
+            InsideClipBoundsStack.Pop();
+        }
+        else {
+            if (InsideClipBoundsStack.Count == 0) {
+                elem.InsideClipBounds = InsideClipBounds;
+            }
+            else {
+                elem.InsideClipBounds = InsideClipBoundsStack.Peek();
+            }
+        }
 
         if (elem is MNGuiElementContainer container) {
             container.OnAddedToContainer(this);
@@ -224,6 +253,9 @@ public class MNGuiElementContainer : GuiElement {
     }
 
     public override void OnMouseUp(ICoreClientAPI api, MouseEvent args) {
+        // TODO: is this guard correct?
+        //if (!InsideClipBounds.PointInside(args.X, args.Y)) return;
+
         foreach (GuiElement element in Elements) {
             element.OnMouseUp(api, args);
         }
@@ -232,6 +264,9 @@ public class MNGuiElementContainer : GuiElement {
     }
 
     public override void OnMouseDown(ICoreClientAPI api, MouseEvent args) {
+        // TODO: is this guard correct?
+        if (InsideClipBounds?.PointInside(args.X, args.Y) == false) return;
+
         bool beforeHandled = false;
         bool nowHandled = false;
         renderFocusHighlight = false;
@@ -336,6 +371,8 @@ public class MNGuiElementContainer : GuiElement {
 
     public override void OnMouseWheel(ICoreClientAPI api, MouseWheelEventArgs args) {
         if (!Bounds.ParentBounds.PointInside(api.Input.MouseX, api.Input.MouseY)) return;
+        // TODO: is this guard correct?
+        if (InsideClipBounds?.PointInside(api.Input.MouseX, api.Input.MouseY) == false) return;
 
         // Prefer an element that is currently hovered 
         foreach (var element in Elements) {
@@ -467,7 +504,6 @@ public class MNGuiElementContainer : GuiElement {
     }
 
     protected void NotifyExternalThenPropagate(bool fromThis) {
-        api.Logger.Event($"Notifying Layout Applied, {Bounds.Name}: {fromThis}");
         // The arg to handler is true because it's notified from a child
         var consumed = EventLayoutApplied?.Invoke(fromThis);
 

@@ -7,13 +7,13 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace MNGui.DialogBuilders {
     public class StandardDialogBuilder {
+        public static readonly string MainContainerName = "container-main";
+        public static readonly string ScrollbarName = "scrollbar-main";
+
         double fixedHeight;
 
         // "root" layout must have ElementBounds for getting child of the MNGuiElementContainer
         public LayoutWithElementBounds? ChildLayout { get; private set; }
-
-        public static readonly string MainContainerName = "container-main";
-        public static readonly string ScrollbarName = "scrollbar-main";
 
         public static MNGuiElementContainer? GetMainContainerElement(GuiComposer composer) {
             return composer.GetElement<MNGuiElementContainer>(MainContainerName);
@@ -33,7 +33,7 @@ namespace MNGui.DialogBuilders {
         }
 
         public GuiComposer Layout(ICoreClientAPI capi, GuiDialogBlockEntity gui) {
-            return Layout(capi, gui, nameof(gui) + gui.BlockEntityPosition);
+            return Layout(capi, gui, gui.GetType().Name + gui.BlockEntityPosition);
         }
 
         public GuiComposer Layout(ICoreClientAPI capi, GuiDialogGeneric gui, string dialogId) {
@@ -111,7 +111,8 @@ namespace MNGui.DialogBuilders {
             composer.Compose();
 
             var mainScrollBar = composer.GetElement<MNGuiElementVerticalScrollbar>(ScrollbarName)!;
-            mainScrollBar.InitViewAndContentBounds(clipBounds, containerBounds);
+            mainScrollBar.SetViewAndContentBounds(clipBounds, containerBounds);
+            mainScrollBar.OnBoundsUpdated();
 
             return composer;
         }

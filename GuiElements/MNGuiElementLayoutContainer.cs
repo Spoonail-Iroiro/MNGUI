@@ -14,7 +14,7 @@ public class MNGuiElementLayoutContainer : MNGuiElementContainer, ILayoutableEle
     protected LayoutWithElementBounds? PendingNewLayout { get; set; }
 
     /// Default layout Must not need to be disposed, since it might remain after container's Dispose
-    protected LayoutWithElementBounds DefaultLayout => new VerticalLayout(api).Add(new GuiElementDebugHorizontalLayout(api, ElementBounds.FixedSize(1, 1)), "temp");
+    protected LayoutWithElementBounds DefaultLayout => new VerticalLayout(api).Add(new GuiElementDummy(api, ElementBounds.FixedSize(1, 1)), "temp");
 
     public MNGuiElementLayoutContainer(ICoreClientAPI capi, ElementBounds bounds, LayoutWithElementBounds? initialLayout = null) : base(capi, bounds) {
         // Initial Layout
@@ -32,6 +32,8 @@ public class MNGuiElementLayoutContainer : MNGuiElementContainer, ILayoutableEle
     public void SetNewLayout(LayoutWithElementBounds newLayout) {
         // Will be actually applied when ResolvePendingNewLayout is called
         PendingNewLayout = newLayout;
+        // Hacky, ensuring resolution of layout outside of event handler
+        api.Event.RegisterCallback(dt => ResolvePendingNewLayout(), 0);
     }
 
     /// <summary>
@@ -81,6 +83,7 @@ public class MNGuiElementLayoutContainer : MNGuiElementContainer, ILayoutableEle
     public void BeforeMeasure() {
         ChildLayout.Measure();
 
+        BeforeCalcBounds();
         Bounds.CalcWorldBounds();
 
         return;

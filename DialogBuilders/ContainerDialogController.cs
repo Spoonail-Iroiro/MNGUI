@@ -1,38 +1,33 @@
-﻿using MNGui.Extensions;
-using MNGui.GuiElements;
-using MNGui.Layouts;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using Vintagestory.API.Client;
 using Vintagestory.API.Util;
+using MNGui.Extensions;
+using MNGui.GuiElements;
+using MNGui.Layouts;
 
 namespace MNGui.DialogBuilders;
-public class StandardDialogController {
+public class ContainerDialogController {
     protected ICoreClientAPI capi;
 
     public LayoutBase ChildLayout { get; protected set; }
 
     public GuiComposer Composer { get; protected set; }
 
-    public StandardDialogController(ICoreClientAPI capi, GuiComposer composer, LayoutBase childLayout, bool isRoot = true) {
+    public ContainerDialogController(ICoreClientAPI capi, GuiComposer composer, LayoutBase childLayout, bool isRoot = true) {
         this.capi = capi;
         ChildLayout = childLayout;
         Composer = composer;
 
         if (isRoot) {
             var container = GetMainContainerElement();
-            container.EventLayoutApplied = fromThis => { OnBoundsUpdated(); return true; };
-
+            container!.EventLayoutApplied = fromThis => { OnBoundsUpdated(); return true; };
         }
     }
 
     public MNGuiElementContainer? GetMainContainerElement() {
-        return Composer.GetElement<MNGuiElementContainer>(StandardDialogBuilder.MainContainerName);
-    }
-
-    public MNGuiElementVerticalScrollbar? GetScrollbarElement() {
-        return Composer.GetElement<MNGuiElementVerticalScrollbar>(StandardDialogBuilder.ScrollbarName);
+        return Composer.GetElement<MNGuiElementContainer>(ContainerDialogBuilder.MainContainerName);
     }
 
     public T? GetElement<T>(string name) where T : class {
@@ -62,24 +57,16 @@ public class StandardDialogController {
         if (container == null) return;
 
         if (ChildLayout is LayoutWithElementBounds lweb) {
-            //container.Clear();
 
             ChildLayout.Measure();
-
-            //foreach (var elementInfo in ChildLayout.GetAllGuiElements()) {
-            //    container.Add(elementInfo.Element, elementInfo.Name);
-            //}
-
-            //container.SetChildBound(lweb.Bounds!);
 
             container.Bounds.CalcWorldBounds();
 
             lweb.ArrangeWithMinSize();
 
             Composer.ReCompose();
-
-            GetScrollbarElement()?.OnBoundsUpdated();
         }
     }
+
 
 }
