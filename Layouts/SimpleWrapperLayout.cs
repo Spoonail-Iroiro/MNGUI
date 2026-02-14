@@ -60,6 +60,7 @@ public class SimpleWrapperLayout : SingleLayout {
         base.MeasureInternal();
 
         // Determine Horizontal/VerticalSpaceGreeding from child and me
+        // TODO: is this right? maybe it's just return this layout is fill (FollowArrange?) or not
         hGreedings.Add(HorizontalSpaceGreedingPolicy);
         vGreedings.Add(VerticalSpaceGreedingPolicy);
         HorizontalSpaceGreedingPolicy = LayoutUtil.AggregateGreeding([.. hGreedings]);
@@ -69,10 +70,41 @@ public class SimpleWrapperLayout : SingleLayout {
     public override void Arrange(Vec2 fixedPos, Size availableSize) {
         base.Arrange(fixedPos, availableSize);
 
+        var isArrangedFirstChild = false;
         foreach (var childLayout in ChildLayouts) {
             if (childLayout is LayoutWithElementBounds lweb) {
-                if (lweb.Bounds == null) throw new InvalidOperationException($"Call Measure before Arrange!");
-                lweb.Arrange(new Vec2(lweb.Bounds.fixedX, lweb.Bounds.fixedY), lweb.MinSize);
+                if (!isArrangedFirstChild) {
+                    var target = lweb;
+                    var width = 0.0;
+                    var height = 0.0;
+
+                    // Arrange with MinSize if the child says, otherwise fill(1.0) always
+                    switch (target.HorizontalSizePolicy) {
+                        case SizePolicy.MinSize:
+                            width = target.MinWidth;
+                            break;
+                        default:
+                            width = Bounds.UnscaledInnerWidth();
+                            break;
+                    }
+
+                    switch (target.VerticalSizePolicy) {
+                        case SizePolicy.MinSize:
+                            height = target.MinHeight;
+                            break;
+                        default:
+                            height = Bounds.UnscaledInnerHeight();
+                            break;
+                    }
+
+                    target.Arrange(new Vec2(0.0, 0.0), new Size(width, height));
+
+                    isArrangedFirstChild = true;
+                }
+                else {
+                    // Won't respect size policy of the second child or later
+                    lweb.ArrangeWithMinSize();
+                }
             }
             else {
                 throw new NotImplementedException();

@@ -3,15 +3,19 @@ using MNGui.Extensions;
 using System;
 using System.Collections.Generic;
 using Vintagestory.API.Client;
+using Vintagestory.GameContent;
 
 namespace MNGui.Layouts;
 
 // How SingleLayout adjust actual Bounds of the element: not the same as SizePolicy, which tells the parent sizing preference
 public enum ElementSizeConstraint {
     RawBounds,
-    // Everytime Measure, it recovers initial bounds and calc children MinSize, then limit it to MaxSize
+    // Everytime Measure, it recovers initial bounds and calc MinSize, then limit it to MaxSize
     // Usually used with FitToChildren, for clip element - FitToChildren if under MaxSize, otherwise limit
-    LimitToMax
+    LimitToMax,
+    // Everytime Measure, it recovers initial bounds and calc MinSize, report it to parent
+    // Then resize with Arrange-d size - usually used with stretching SizePolicy
+    FollowArrange
 }
 
 // Layout with single element.
@@ -52,18 +56,42 @@ public class SingleLayout : LayoutWithElementBounds {
     public SingleLayout WithHorizontalSizePolicy(SizePolicy horizontalSizePolicy, double weight = 1.0) {
         HorizontalSizePolicy = horizontalSizePolicy;
         HorizontalStretchWeight = weight;
+        // Adjust size constraint not to be inconsistent with the size policy
+        switch (HorizontalSizePolicy) {
+            case SizePolicy.MinSize:
+                HorizontalElementSizeConstraint = ElementSizeConstraint.RawBounds;
+                break;
+            case SizePolicy.Stretch:
+                HorizontalElementSizeConstraint = ElementSizeConstraint.FollowArrange;
+                break;
+            default:
+                throw new NotImplementedException();
+        }
         return this;
     }
 
     public SingleLayout WithVerticalSizePolicy(SizePolicy verticalSizePolicy, double weight = 1.0) {
         VerticalSizePolicy = verticalSizePolicy;
         VerticalStretchWeight = weight;
+        // Adjust size constraint not to be inconsistent with the size policy
+        switch (VerticalSizePolicy) {
+            case SizePolicy.MinSize:
+                VerticalElementSizeConstraint = ElementSizeConstraint.RawBounds;
+                break;
+            case SizePolicy.Stretch:
+                VerticalElementSizeConstraint = ElementSizeConstraint.FollowArrange;
+                break;
+            default:
+                throw new NotImplementedException();
+        }
         return this;
     }
 
     protected void WithMaxWidthInternal(double maxWidth) {
         HorizontalElementSizeConstraint = ElementSizeConstraint.LimitToMax;
         MaxWidth = maxWidth;
+        // Adjust size policy not to be inconsistent with the size constraint
+        HorizontalSizePolicy = SizePolicy.MinSize;
     }
 
     public SingleLayout WithMaxWidth(double maxWidth) {
@@ -74,6 +102,8 @@ public class SingleLayout : LayoutWithElementBounds {
     protected void WithMaxHeightInternal(double maxHeight) {
         VerticalElementSizeConstraint = ElementSizeConstraint.LimitToMax;
         MaxHeight = maxHeight;
+        // Adjust size policy not to be inconsistent with the size constraint
+        VerticalSizePolicy = SizePolicy.MinSize;
     }
 
     public SingleLayout WithMaxHeight(double maxHeight) {
@@ -107,47 +137,67 @@ public class SingleLayout : LayoutWithElementBounds {
         Element.BeforeCalcBounds();
         Element.Bounds.CalcWorldBounds();
 
-        if (HorizontalSizePolicy == SizePolicy.FitToChildren) {
-            if (HorizontalElementSizeConstraint == ElementSizeConstraint.LimitToMax) {
-                if (Element.Bounds.UnscaledOuterWidth() > MaxWidth) {
-                    Element.Bounds.WithUnscaledOuterWidth(MaxWidth);
-                    Element.Bounds.CalcWorldBounds();
-                }
+        if (HorizontalElementSizeConstraint == ElementSizeConstraint.LimitToMax) {
+            if (Element.Bounds.UnscaledOuterWidth() > MaxWidth) {
+                Element.Bounds.WithUnscaledOuterWidth(MaxWidth);
+                Element.Bounds.CalcWorldBounds();
             }
-        }
-        else {
-            HorizontalSpaceGreedingPolicy = SpaceGreedingPolicy.Greeding;
-            throw new NotImplementedException("SizePolicy should be FitToChildren");
         }
 
-        if (VerticalSizePolicy == SizePolicy.FitToChildren) {
-            if (VerticalElementSizeConstraint == ElementSizeConstraint.LimitToMax) {
-                if (Element.Bounds.UnscaledOuterHeight() > MaxHeight) {
-                    Element.Bounds.WithUnscaledOuterHeight(MaxHeight);
-                    Element.Bounds.CalcWorldBounds();
-                }
+        if (VerticalElementSizeConstraint == ElementSizeConstraint.LimitToMax) {
+            if (Element.Bounds.UnscaledOuterHeight() > MaxHeight) {
+                Element.Bounds.WithUnscaledOuterHeight(MaxHeight);
+                Element.Bounds.CalcWorldBounds();
             }
         }
-        else {
-            VerticalSpaceGreedingPolicy = SpaceGreedingPolicy.Greeding;
-            throw new NotImplementedException("SizePolicy should be FitToChildren");
+
+        switch (HorizontalSizePolicy) {
+            case SizePolicy.MinSize:
+                break;
+            case SizePolicy.Stretch:
+            case SizePolicy.EnforceRatio:
+                HorizontalSpaceGreedingPolicy = SpaceGreedingPolicy.Greeding;
+                break;
+            default:
+                throw new NotImplementedException();
+        }
+
+        switch (VerticalSizePolicy) {
+            case SizePolicy.MinSize:
+                break;
+            case SizePolicy.Stretch:
+            case SizePolicy.EnforceRatio:
+                VerticalSpaceGreedingPolicy = SpaceGreedingPolicy.Greeding;
+                break;
+            default:
+                throw new NotImplementedException();
+
         }
     }
 
     public override void Arrange(Vec2 fixedPos, Size availableSize) {
-        if (HorizontalSizePolicy == SizePolicy.FitToChildren) {
-            Element.Bounds.fixedX = fixedPos.X;
-        }
-        else {
-            // Set sizing Fixed and set fixedWidth to make UnscaledOuterWidth ==     availableSize
-            throw new NotImplementedException("SizePolicy should be FitToChildren");
+        Element.Bounds.WithFixedPosition(fixedPos.X, fixedPos.Y);
+
+        switch (HorizontalElementSizeConstraint) {
+            case ElementSizeConstraint.RawBounds:
+            case ElementSizeConstraint.LimitToMax:
+                break;
+            case ElementSizeConstraint.FollowArrange:
+                Element.Bounds.WithUnscaledOuterWidth(availableSize.Width);
+                break;
+            default:
+                throw new NotImplementedException();
         }
 
-        if (VerticalSizePolicy == SizePolicy.FitToChildren) {
-            Element.Bounds.fixedY = fixedPos.Y;
-        }
-        else {
-            throw new NotImplementedException("SizePolicy should be FitToChildren");
+        switch (VerticalElementSizeConstraint) {
+            case ElementSizeConstraint.RawBounds:
+            case ElementSizeConstraint.LimitToMax:
+                break;
+            case ElementSizeConstraint.FollowArrange:
+                Element.Bounds.WithUnscaledOuterHeight(availableSize.Height);
+                break;
+            default:
+                throw new NotImplementedException();
         }
 
         if (Element is ILayoutableElement lelement) {

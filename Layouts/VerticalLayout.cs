@@ -14,23 +14,43 @@ namespace MNGui.Layouts;
 
 
 public class VerticalLayout : LenearLayoutBase {
-
-    public VerticalLayoutAlignment Alignment { get; private set; }
-
     // Name only for display (like debugging bounds)
     public override string Name { get; set; } = "layout-vertical";
 
-    public VerticalLayout(ICoreClientAPI capi, int gap = 0, VerticalLayoutAlignment alignment = VerticalLayoutAlignment.Top) : base(capi, gap) {
-        Alignment = alignment;
+    public VerticalLayout(ICoreClientAPI capi, int gap = 0, VerticalAlignment alignment = VerticalAlignment.Top) : base(capi, gap) {
     }
 
-    public VerticalLayout Add(GuiElement element, string name = null) {
-        AddInternal(element, name);
+    public VerticalLayout WithSizePolicy(SizePolicy? horizontalSizePolicy = null, SizePolicy? verticalSizePolicy = null) {
+        WithSizePolicyInternal(horizontalSizePolicy, verticalSizePolicy);
         return this;
     }
 
-    public VerticalLayout Add(Func<GuiElement> createElement, string name = null) {
-        AddInternal(createElement, name);
+    public VerticalLayout WithAlignment(HorizontalAlignment? horizontalAlignment = null, VerticalAlignment? verticalAlignment = null) {
+        WithAlignmentInternal(horizontalAlignment, verticalAlignment);
+        return this;
+    }
+
+    public VerticalLayout Add(
+            GuiElement element,
+            string? name = null,
+            SizePolicy? hSizePolicy = null,
+            double hStretchWeight = 1.0,
+            SizePolicy? vSizePolicy = null,
+            double vStretchWeight = 1.0
+        ) {
+        AddInternal(element, name, hSizePolicy, hStretchWeight, vSizePolicy, vStretchWeight);
+        return this;
+    }
+
+    public VerticalLayout Add(
+            Func<GuiElement> createElement,
+            string? name = null,
+            SizePolicy? hSizePolicy = null,
+            double hStretchWeight = 1.0,
+            SizePolicy? vSizePolicy = null,
+            double vStretchWeight = 1.0
+        ) {
+        AddInternal(createElement, name, hSizePolicy, hStretchWeight, vSizePolicy, vStretchWeight);
         return this;
     }
 

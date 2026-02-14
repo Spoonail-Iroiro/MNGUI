@@ -15,22 +15,42 @@ using Vintagestory.GameContent;
 namespace MNGui.Layouts;
 
 public class HorizontalLayout : LenearLayoutBase {
-
-    public HorizontalLayoutAlignment Alignment { get; private set; }
-
     public override string Name { get; set; } = "layout-horizontal";
 
-    public HorizontalLayout(ICoreClientAPI capi, int gap = 0, HorizontalLayoutAlignment alignment = HorizontalLayoutAlignment.Left) : base(capi, gap) {
-        Alignment = alignment;
+    public HorizontalLayout(ICoreClientAPI capi, int gap = 0, HorizontalAlignment alignment = HorizontalAlignment.Left) : base(capi, gap) {
     }
 
-    public HorizontalLayout Add(GuiElement element, string name = null) {
-        AddInternal(element, name);
+    public HorizontalLayout WithSizePolicy(SizePolicy? horizontalSizePolicy = null, SizePolicy? verticalSizePolicy = null) {
+        WithSizePolicyInternal(horizontalSizePolicy, verticalSizePolicy);
         return this;
     }
 
-    public HorizontalLayout Add(Func<GuiElement> createElement, string name = null) {
-        AddInternal(createElement, name);
+    public HorizontalLayout WithAlignment(HorizontalAlignment? horizontalAlignment = null, VerticalAlignment? verticalAlignment = null) {
+        WithAlignmentInternal(horizontalAlignment, verticalAlignment);
+        return this;
+    }
+
+    public HorizontalLayout Add(
+            GuiElement element,
+            string? name = null,
+            SizePolicy? hSizePolicy = null,
+            double hStretchWeight = 1.0,
+            SizePolicy? vSizePolicy = null,
+            double vStretchWeight = 1.0
+        ) {
+        AddInternal(element, name, hSizePolicy, hStretchWeight, vSizePolicy, vStretchWeight);
+        return this;
+    }
+
+    public HorizontalLayout Add(
+            Func<GuiElement> createElement,
+            string? name = null,
+            SizePolicy? hSizePolicy = null,
+            double hStretchWeight = 1.0,
+            SizePolicy? vSizePolicy = null,
+            double vStretchWeight = 1.0
+        ) {
+        AddInternal(createElement, name, hSizePolicy, hStretchWeight, vSizePolicy, vStretchWeight);
         return this;
     }
 
@@ -104,16 +124,52 @@ public class HorizontalLayout : LenearLayoutBase {
     }
 
     public override void Arrange(Vec2 fixedPos, Size availableSize) {
-        // TODO: various aligning (currently only topleft)
-        AlignChildrenTopLeft();
+        if (Bounds == null) throw new InvalidOperationException($"Call Measure before Arrange!");
+        var innerMinSize = new Size(Bounds.UnscaledInnerWidth(), Bounds.UnscaledInnerHeight()); // Needs when align
+        // Apply arrange myself
+        Bounds.WithFixedPosition(fixedPos.X, fixedPos.Y);
+        Bounds.WithUnscaledOuterWidth(availableSize.Width);
+        Bounds.WithUnscaledOuterHeight(availableSize.Height);
+
+        // TODO:  if (ChildLayouts.Count == 0) 
+
+        // Now I have available size (UnscaledInnerWidth/Height), lets assign it to children
+        var children = new List<LayoutWithElementBounds>();
+        var hasFillElementHorizontal = false;
+
         foreach (LayoutBase layout in ChildLayouts) {
             if (layout is LayoutWithElementBounds lweb) {
-                if (lweb.Bounds == null) throw new InvalidOperationException($"Call Measure before Arrange!");
-                layout.Arrange(new Vec2(lweb.Bounds.fixedX, lweb.Bounds.fixedY), lweb.MinSize);
+                children.Add(lweb);
+                if (IsStretchingSizePolicy(lweb.HorizontalSizePolicy)) {
+                    hasFillElementHorizontal = true;
+                }
+                //layout.Arrange(new Vec2(lweb.Bounds.fixedX, lweb.Bounds.fixedY), lweb.MinSize);
             }
             else {
                 throw new NotImplementedException("We're not prepared for layouts without bounds...");
             }
+        }
+
+        var actualSizePoliciesHorizontal = children.Select(ch => ch.GetAdjustedHorizontalSizePolicy(hasFillElementHorizontal)).ToList();
+        var actualStretchWeightHorizontal = children.Select(ch => ch.HorizontalStretchWeight).ToList(); // MinSize will be ignored
+        var minWidthes = children.Select(ch => ch.MinWidth).ToList();
+        var actualSizePoliciesVertical = children.Select(ch => ch.VerticalSizePolicy == SizePolicy.UnspecifiedLayout ? SizePolicy.Stretch : ch.VerticalSizePolicy).ToList();
+        //var actualStretchWeightVertical = children.Select(ch => 1.0).ToList(); // MinSize will be ignored, full height if fill
+
+        var availableWidth = Bounds.UnscaledInnerWidth();
+        var availableHeight = Bounds.UnscaledInnerHeight();
+        availableWidth -= Gap * (children.Count - 1);
+
+        var distributedWidthes = CalcDistributedLength(availableWidth, minWidthes, actualSizePoliciesHorizontal, actualStretchWeightHorizontal);
+        var heights = Enumerable.Zip(actualSizePoliciesVertical, children).Select(pair => pair.First == SizePolicy.MinSize ? pair.Second.MinHeight : availableHeight);
+
+        var needHorizontalAlignment = !actualSizePoliciesHorizontal.Any(IsStretchingSizePolicy); // If some elemnt is fill, remaining space will be consumed, so no need to align
+        // TODO: alignment
+        var fixedXs = CalcAlignedPositions(0.0, distributedWidthes, Gap);
+        var fixedYs = heights.Select(_ => 0.0).ToList();
+
+        foreach (var ((fixedX, fixedY), (width, height), lweb) in Enumerable.Zip(Enumerable.Zip(fixedXs, fixedYs), Enumerable.Zip(distributedWidthes, heights), children)) {
+            lweb.Arrange(new Vec2(fixedX, fixedY), new Size(width, height));
         }
     }
 

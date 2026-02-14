@@ -13,8 +13,8 @@ public abstract class LayoutBase {
 
     public virtual string Name { get; set; } = "lauout-other";
 
-    public virtual SizePolicy HorizontalSizePolicy { get; protected set; } = SizePolicy.FitToChildren;
-    public virtual SizePolicy VerticalSizePolicy { get; protected set; } = SizePolicy.FitToChildren;
+    public virtual SizePolicy HorizontalSizePolicy { get; protected set; } = SizePolicy.MinSize;
+    public virtual SizePolicy VerticalSizePolicy { get; protected set; } = SizePolicy.MinSize;
     public double HorizontalStretchWeight { get; protected set; } = 0.0;
     public double VerticalStretchWeight { get; protected set; } = 0.0;
 
@@ -53,12 +53,41 @@ public abstract class LayoutBase {
 
         return Enumerable.Empty<GuiElementInfo>();
     }
+
+    protected void WithSizePolicyInternal(SizePolicy? horizontalSizePolicy, SizePolicy? verticalSizePolicy) {
+        if (horizontalSizePolicy != null) {
+            HorizontalSizePolicy = horizontalSizePolicy.Value;
+        }
+
+        if (verticalSizePolicy != null) {
+            VerticalSizePolicy = verticalSizePolicy.Value;
+        }
+    }
+
+    public SizePolicy GetAdjustedHorizontalSizePolicy(bool hasFillSibling) {
+        if (HorizontalSizePolicy == SizePolicy.UnspecifiedLayout) {
+            if (hasFillSibling) return SizePolicy.MinSize;
+            return HorizontalSpaceGreedingPolicy == SpaceGreedingPolicy.None ? SizePolicy.MinSize : SizePolicy.Stretch;
+        }
+
+        return HorizontalSizePolicy;
+    }
+
+    public SizePolicy GetAdjustedVerticalSizePolicy(bool hasFillSibling) {
+        if (VerticalSizePolicy == SizePolicy.UnspecifiedLayout) {
+            if (hasFillSibling) return SizePolicy.MinSize;
+            return VerticalSpaceGreedingPolicy == SpaceGreedingPolicy.None ? SizePolicy.MinSize : SizePolicy.Stretch;
+        }
+
+        return VerticalSizePolicy;
+    }
 }
 
 public enum SizePolicy {
-    FitToChildren,
+    MinSize,
     Stretch,
     EnforceRatio,
+    UnspecifiedLayout
 }
 
 public enum SpaceGreedingPolicy {

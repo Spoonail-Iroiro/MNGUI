@@ -1,21 +1,20 @@
-﻿using MNGui.Extensions;
-using MNGui.GuiElements;
-using MNGui.GuiElements.Layout;
-using MNGui.Util;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Vintagestory.API;
 using Vintagestory.API.Client;
 using Vintagestory.API.Config;
+using MNGui.Extensions;
+using MNGui.GuiElements;
+using MNGui.GuiElements.Layout;
+using MNGui.Util;
 
 namespace MNGui.Layouts;
 
 public abstract class LenearLayoutBase : LayoutWithElementBounds {
-    public LenearLayoutBase(ICoreClientAPI capi, int gap) {
-        this.capi = capi;
-        Gap = gap;
-    }
+    public HorizontalAlignment HorizontalAlignment { get; private set; }
+    public VerticalAlignment VerticalAlignment { get; private set; }
 
     public double? CustomMinWidth { get; set; } = null;
     public double? CustomMinHeight { get; set; } = null;
@@ -37,14 +36,56 @@ public abstract class LenearLayoutBase : LayoutWithElementBounds {
 
     public override ElementBounds? Bounds => (Element?.Bounds ?? bounds);
 
-    protected void AddInternal(GuiElement element, string? name = null) {
+    public LenearLayoutBase(ICoreClientAPI capi, int gap) {
+        this.capi = capi;
+        Gap = gap;
+
+        HorizontalSizePolicy = SizePolicy.UnspecifiedLayout;
+        VerticalSizePolicy = SizePolicy.UnspecifiedLayout;
+        HorizontalStretchWeight = 1.0;
+        VerticalStretchWeight = 1.0;
+    }
+
+
+    protected void WithAlignmentInternal(HorizontalAlignment? horizontalAlignment, VerticalAlignment? verticalAlignment) {
+        if (horizontalAlignment != null) {
+            HorizontalAlignment = horizontalAlignment.Value;
+        }
+
+        if (verticalAlignment != null) {
+            VerticalAlignment = verticalAlignment.Value;
+        }
+    }
+
+    protected void AddInternal(
+            GuiElement element,
+            string? name,
+            SizePolicy? hSizePolicy,
+            double hStretchWeight,
+            SizePolicy? vSizePolicy,
+            double vStretchWeight
+        ) {
         var elementAsLayout = new SingleLayout(element, name);
+        if (hSizePolicy != null) {
+            elementAsLayout.WithHorizontalSizePolicy(hSizePolicy.Value, hStretchWeight);
+        }
+
+        if (vSizePolicy != null) {
+            elementAsLayout.WithVerticalSizePolicy(vSizePolicy.Value, vStretchWeight);
+        }
 
         AddInternal(elementAsLayout);
     }
 
-    protected void AddInternal(Func<GuiElement> createElement, string? name = null) {
-        AddInternal(createElement(), name);
+    protected void AddInternal(
+            Func<GuiElement> createElement,
+            string? name,
+            SizePolicy? hSizePolicy,
+            double hStretchWeight,
+            SizePolicy? vSizePolicy,
+            double vStretchWeight
+        ) {
+        AddInternal(createElement(), name, hSizePolicy, hStretchWeight, vSizePolicy, vStretchWeight);
     }
 
     protected void AddInternal(LayoutBase layout) {
@@ -75,5 +116,58 @@ public abstract class LenearLayoutBase : LayoutWithElementBounds {
                 yield return elem;
             }
         }
+    }
+
+
+    /// <summary>
+    /// Returns is it's stretching size policy that pripritized than UnspecifiedLayout + SpaceGreeding
+    /// </summary>
+    /// <param name="sizePolicy"></param>
+    /// <returns></returns>
+    public static bool IsStretchingSizePolicy(SizePolicy sizePolicy) {
+        return sizePolicy == SizePolicy.Stretch || sizePolicy == SizePolicy.EnforceRatio;
+    }
+
+    public static List<double> CalcDistributedLength(
+            double availableLength,
+            List<double> minLengthes,
+            List<SizePolicy> sizePolicies,
+            List<double> stretchWeights
+        ) {
+        var remainingLength = availableLength - minLengthes.Sum();
+        if (remainingLength < LayoutUtil.EPSILON_LENGTH) remainingLength = 0.0;
+        // TODO: zero division cover
+        var stretchWeightsDenominator = stretchWeights.Sum();
+
+        var distLengthes = new List<double>();
+
+        foreach (var (minLength, sizePolicy, stretchWeight) in Enumerable.Zip(minLengthes, sizePolicies, stretchWeights)) {
+            switch (sizePolicy) {
+                case SizePolicy.MinSize:
+                    distLengthes.Add(minLength);
+                    break;
+                case SizePolicy.Stretch:
+                    // TODO: proper algorythm - now just distributing remaining length
+                    distLengthes.Add(minLength + remainingLength * stretchWeight / stretchWeightsDenominator);
+                    break;
+                default:
+                    throw new NotImplementedException();
+            }
+        }
+
+        return distLengthes;
+    }
+
+    public static List<double> CalcAlignedPositions(double offset, List<double> distributedLengthes, double gap) {
+        var currentPos = offset;
+        var rtn = new List<double>();
+
+        foreach (var length in distributedLengthes) {
+            rtn.Add(currentPos);
+
+            currentPos += length + gap;
+        }
+
+        return rtn;
     }
 }

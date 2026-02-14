@@ -3,13 +3,13 @@ using System.Linq;
 
 namespace MNGui.Layouts;
 
-public enum HorizontalLayoutAlignment {
+public enum HorizontalAlignment {
     Left,
     Center,
     Right
 }
 
-public enum VerticalLayoutAlignment {
+public enum VerticalAlignment {
     Top,
     Middle,
     Bottom
