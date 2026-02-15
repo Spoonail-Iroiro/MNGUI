@@ -45,7 +45,7 @@ public class InsetContainerLayoutBuilder {
         this.containerName = containerName;
     }
 
-    public InsetContainerLayoutBuilder WithFixed(BoxSide side, double fixedLength) {
+    public InsetContainerLayoutBuilder WithSizeFixed(BoxSide side, double fixedLength) {
         if (side == BoxSide.Horizontal) {
             horizontalSizePolicy = InsetContainerSizePolicy.Fixed;
             minWidth = fixedLength;
@@ -57,7 +57,7 @@ public class InsetContainerLayoutBuilder {
         return this;
     }
 
-    public InsetContainerLayoutBuilder WithFitToChildren(BoxSide side) {
+    public InsetContainerLayoutBuilder WithSizeFitToChildren(BoxSide side) {
         if (side == BoxSide.Horizontal) {
             horizontalSizePolicy = InsetContainerSizePolicy.FitToChildren;
             minWidth = 0.0;
@@ -70,7 +70,7 @@ public class InsetContainerLayoutBuilder {
     }
 
     // Currently only max is supported
-    public InsetContainerLayoutBuilder WithFitToChildrenRange(BoxSide side, double MaxLength) {
+    public InsetContainerLayoutBuilder WithSizeFitToChildrenRange(BoxSide side, double MaxLength) {
         if (side == BoxSide.Horizontal) {
             horizontalSizePolicy = InsetContainerSizePolicy.FitToChildrenRange;
             minWidth = 0.0;
@@ -84,11 +84,21 @@ public class InsetContainerLayoutBuilder {
         return this;
     }
 
+    /// <summary>
+    /// Set if this layout has scrollbar. Default: true
+    /// </summary>
+    /// <param name="exist"></param>
+    /// <returns></returns>
     public InsetContainerLayoutBuilder WithScrollbar(bool exist) {
         hasScrollbar = exist;
         return this;
     }
 
+    /// <summary>
+    /// Set if this layout has clip. Default: true
+    /// </summary>
+    /// <param name="enabled"></param>
+    /// <returns></returns>
     public InsetContainerLayoutBuilder WithClip(bool enabled) {
         isClipEnabled = enabled;
         return this;
@@ -100,7 +110,7 @@ public class InsetContainerLayoutBuilder {
     }
 
     /// <summary>
-    /// Set containe's padding, for preventing elements drawing outside of their bounds from being clippled slightly
+    /// Set containe's padding. Default: 2.0. Mainly for preventing elements drawing outside of their bounds from being clippled slightly
     /// </summary>
     /// <param name="padding"></param>
     /// <returns></returns>
@@ -170,7 +180,7 @@ public class InsetContainerLayoutBuilder {
             // TODO: proper scrollbar layouting
             var scrollbarHeight = (minHeight > 10.0 ? minHeight : 10) + padding * 2;
             var scrollbar = new MNGuiElementVerticalScrollbar(capi, ElementBounds.FixedSize(20, scrollbarHeight));
-            var scrollBarLayout = new SingleLayout(scrollbar);
+            var scrollBarLayout = new SingleLayout(scrollbar).WithVerticalSizePolicy(SizePolicy.Stretch);
             scrollbar.SetViewAndContentBounds(clipStartLayout.Bounds, containerLayout.Bounds);
             rowLayout.Add(scrollBarLayout);
         }
