@@ -184,6 +184,7 @@ public class SingleLayout : LayoutWithElementBounds {
                 break;
             case ElementSizeConstraint.FollowArrange:
                 Element.Bounds.WithUnscaledOuterWidth(availableSize.Width);
+                Element.Bounds.CalcWorldBounds();
                 break;
             default:
                 throw new NotImplementedException();
@@ -195,6 +196,7 @@ public class SingleLayout : LayoutWithElementBounds {
                 break;
             case ElementSizeConstraint.FollowArrange:
                 Element.Bounds.WithUnscaledOuterHeight(availableSize.Height);
+                Element.Bounds.CalcWorldBounds();
                 break;
             default:
                 throw new NotImplementedException();

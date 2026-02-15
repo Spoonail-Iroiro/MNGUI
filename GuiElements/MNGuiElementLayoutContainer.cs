@@ -91,7 +91,7 @@ public class MNGuiElementLayoutContainer : MNGuiElementContainer, ILayoutableEle
 
     public void AfterArrange() {
         // After parent layout's arrange, this element has proper spaceing in its bounds
-        ChildLayout.Arrange(new(0.0, 0.0), new(Bounds.UnscaledInnerWidth(), Bounds.UnscaledInnerWidth()));
+        ChildLayout.Arrange(new(0.0, 0.0), new(Bounds.UnscaledInnerWidth(), Bounds.UnscaledInnerHeight()));
     }
 
     public override void ComposeElements(Context ctx, ImageSurface surface) {

@@ -117,9 +117,11 @@ public class HorizontalLayout : LenearLayoutBase {
         // If MinSize is smaller than CustomMinSize, fix for each side
         if (CustomMinWidth != null && MinWidth < CustomMinWidth.Value) {
             Bounds.WithUnscaledOuterWidth(CustomMinWidth.Value);
+            Bounds.CalcWorldBounds();
         }
         if (CustomMinHeight != null && MinHeight < CustomMinHeight.Value) {
             Bounds.WithUnscaledOuterHeight(CustomMinHeight.Value);
+            Bounds.CalcWorldBounds();
         }
     }
 
@@ -130,6 +132,7 @@ public class HorizontalLayout : LenearLayoutBase {
         Bounds.WithFixedPosition(fixedPos.X, fixedPos.Y);
         Bounds.WithUnscaledOuterWidth(availableSize.Width);
         Bounds.WithUnscaledOuterHeight(availableSize.Height);
+        Bounds.CalcWorldBounds();
 
         // TODO:  if (ChildLayouts.Count == 0) 
 
