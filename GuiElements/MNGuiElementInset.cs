@@ -5,7 +5,7 @@ using Vintagestory.API.Client;
 
 namespace MNGui.GuiElements;
 
-class MNGuiElementInset : GuiElement {
+class MNGuiElementInset : MNGuiElementStaticBase {
     int depth;
     float brightness;
 
@@ -24,13 +24,6 @@ class MNGuiElementInset : GuiElement {
         }
 
         EmbossRoundRectangleElement(ctx, Bounds, true, depth);
-    }
-
-    // Never respond to mouse event
-    public override void OnMouseDown(ICoreClientAPI api, MouseEvent mouse) {
-    }
-
-    public override void OnMouseUp(ICoreClientAPI api, MouseEvent args) {
     }
 }
 

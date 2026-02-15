@@ -5,7 +5,7 @@ using Vintagestory.API.Client;
 using Vintagestory.API.MathTools;
 
 namespace MNGui.GuiElements.Layout;
-public class GuiElementDebugHorizontalLayout : GuiElement {
+public class GuiElementDebugHorizontalLayout : MNGuiElementStaticBase {
     public GuiElementDebugHorizontalLayout(ICoreClientAPI capi, ElementBounds bounds) : base(capi, bounds) {
     }
 
@@ -16,12 +16,5 @@ public class GuiElementDebugHorizontalLayout : GuiElement {
 
     public override void ComposeElements(Context ctxStatic, ImageSurface surface) {
         Bounds.CalcWorldBounds();
-    }
-
-    // Never respond to mouse event
-    public override void OnMouseDown(ICoreClientAPI api, MouseEvent mouse) {
-    }
-
-    public override void OnMouseUp(ICoreClientAPI api, MouseEvent args) {
     }
 }
