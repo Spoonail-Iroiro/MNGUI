@@ -24,6 +24,16 @@ public class SimpleWrapperLayout : SingleLayout {
         return this;
     }
 
+    new public SimpleWrapperLayout WithHorizontalSizePolicy(SizePolicy horizontalSizePolicy, double weight = 1.0) {
+        WithHorizontalSizePolicyInternal(horizontalSizePolicy, weight);
+        return this;
+    }
+
+    new public SimpleWrapperLayout WithVerticalSizePolicy(SizePolicy verticalSizePolicy, double weight = 1.0) {
+        WithVerticalSizePolicyInternal(verticalSizePolicy, weight);
+        return this;
+    }
+
     public SimpleWrapperLayout Add(LayoutBase layout) {
         ChildLayouts.Add(layout);
         return this;

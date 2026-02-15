@@ -53,7 +53,7 @@ public class SingleLayout : LayoutWithElementBounds {
         }
     }
 
-    public SingleLayout WithHorizontalSizePolicy(SizePolicy horizontalSizePolicy, double weight = 1.0) {
+    protected void WithHorizontalSizePolicyInternal(SizePolicy horizontalSizePolicy, double weight) {
         HorizontalSizePolicy = horizontalSizePolicy;
         HorizontalStretchWeight = weight;
         // Adjust size constraint not to be inconsistent with the size policy
@@ -67,10 +67,14 @@ public class SingleLayout : LayoutWithElementBounds {
             default:
                 throw new NotImplementedException();
         }
+    }
+
+    public SingleLayout WithHorizontalSizePolicy(SizePolicy horizontalSizePolicy, double weight = 1.0) {
+        WithHorizontalSizePolicyInternal(horizontalSizePolicy, weight);
         return this;
     }
 
-    public SingleLayout WithVerticalSizePolicy(SizePolicy verticalSizePolicy, double weight = 1.0) {
+    protected void WithVerticalSizePolicyInternal(SizePolicy verticalSizePolicy, double weight) {
         VerticalSizePolicy = verticalSizePolicy;
         VerticalStretchWeight = weight;
         // Adjust size constraint not to be inconsistent with the size policy
@@ -84,6 +88,10 @@ public class SingleLayout : LayoutWithElementBounds {
             default:
                 throw new NotImplementedException();
         }
+    }
+
+    public SingleLayout WithVerticalSizePolicy(SizePolicy verticalSizePolicy, double weight = 1.0) {
+        WithVerticalSizePolicyInternal(verticalSizePolicy, weight);
         return this;
     }
 
