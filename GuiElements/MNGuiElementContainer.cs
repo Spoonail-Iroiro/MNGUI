@@ -18,6 +18,7 @@ public class MNGuiElementContainer : GuiElement {
     bool renderFocusHighlight;
 
     public List<GuiElement> Elements { get; protected set; } = new();
+    public List<GuiElement> InteractiveElements { get; protected set; } = new();
 
     public Dictionary<string, GuiElement> NamedElements { get; protected set; } = new();
 
@@ -192,6 +193,7 @@ public class MNGuiElementContainer : GuiElement {
             }
         }
         Elements.Clear();
+        InteractiveElements.Clear();
         NamedElements.Clear();
         Bounds.RemoveAllChildBounds();
         InsideClipBoundsStack.Clear();
@@ -213,6 +215,11 @@ public class MNGuiElementContainer : GuiElement {
 
     public void Add(GuiElement elem, string? name = null) {
         Elements.Add(elem);
+
+        if (IsInteractiveElement(elem)) {
+            InteractiveElements.Add(elem);
+        }
+
         if (name != null) {
             NamedElements[name] = elem;
         }
@@ -245,6 +252,16 @@ public class MNGuiElementContainer : GuiElement {
         }
     }
 
+    public static bool IsInteractiveElement(GuiElement element) {
+        var isInteractive = element switch {
+            MNGuiElementStaticBase => false,
+            GuiElementStaticText => false,
+            _ => true
+        };
+
+        return isInteractive;
+    }
+
     public void SetChildBound(ElementBounds bounds) {
         Bounds.RemoveAllChildBounds();
         Bounds.WithChildForce(bounds);
@@ -256,7 +273,7 @@ public class MNGuiElementContainer : GuiElement {
         // TODO: is this guard correct?
         //if (!InsideClipBounds.PointInside(args.X, args.Y)) return;
 
-        foreach (GuiElement element in Elements) {
+        foreach (GuiElement element in InteractiveElements) {
             element.OnMouseUp(api, args);
         }
 
@@ -271,7 +288,7 @@ public class MNGuiElementContainer : GuiElement {
         bool nowHandled = false;
         renderFocusHighlight = false;
 
-        foreach (GuiElement element in Elements) {
+        foreach (GuiElement element in InteractiveElements) {
             if (!beforeHandled) {
                 element.OnMouseDown(api, args);
                 nowHandled = args.Handled;
@@ -296,7 +313,7 @@ public class MNGuiElementContainer : GuiElement {
 
 
     public override void OnMouseMove(ICoreClientAPI api, MouseEvent args) {
-        foreach (GuiElement element in Elements) {
+        foreach (GuiElement element in InteractiveElements) {
             element.OnMouseMove(api, args);
             if (args.Handled) {
                 break;
@@ -317,7 +334,7 @@ public class MNGuiElementContainer : GuiElement {
 
         base.OnKeyDown(api, args);
 
-        foreach (GuiElement element in Elements) {
+        foreach (GuiElement element in InteractiveElements) {
             element.OnKeyDown(api, args);
             if (args.Handled) break;
         }
@@ -338,7 +355,6 @@ public class MNGuiElementContainer : GuiElement {
             }
         }
 
-        // Hardcoded element class type :/
         if (!args.Handled && (args.KeyCode == (int)GlKeys.Enter || args.KeyCode == (int)GlKeys.KeypadEnter) && CurrentTabIndexElement is GuiElementEditableTextBase) {
             UnfocusOwnElementsExcept(null);
         }
@@ -352,7 +368,7 @@ public class MNGuiElementContainer : GuiElement {
 
         base.OnKeyUp(api, args);
 
-        foreach (GuiElement element in Elements) {
+        foreach (GuiElement element in InteractiveElements) {
             element.OnKeyUp(api, args);
             if (args.Handled) break;
         }
@@ -363,7 +379,7 @@ public class MNGuiElementContainer : GuiElement {
 
         base.OnKeyPress(api, args);
 
-        foreach (GuiElement element in Elements) {
+        foreach (GuiElement element in InteractiveElements) {
             element.OnKeyPress(api, args);
             if (args.Handled) break;
         }
@@ -375,7 +391,7 @@ public class MNGuiElementContainer : GuiElement {
         if (InsideClipBounds?.PointInside(api.Input.MouseX, api.Input.MouseY) == false) return;
 
         // Prefer an element that is currently hovered 
-        foreach (var element in Elements) {
+        foreach (var element in InteractiveElements) {
             if (element.IsPositionInside(api.Input.MouseX, api.Input.MouseY)) {
                 element.OnMouseWheel(api, args);
             }
@@ -383,7 +399,7 @@ public class MNGuiElementContainer : GuiElement {
             if (args.IsHandled) return;
         }
 
-        foreach (GuiElement element in Elements) {
+        foreach (GuiElement element in InteractiveElements) {
             element.OnMouseWheel(api, args);
             if (args.IsHandled) break;
         }
@@ -411,7 +427,7 @@ public class MNGuiElementContainer : GuiElement {
         api.Render.Render2DTexturePremultipliedAlpha(contentTexture.TextureId, Bounds);
 
         MouseOverCursor = null;
-        foreach (GuiElement element in Elements) {
+        foreach (GuiElement element in InteractiveElements) {
             element.RenderInteractiveElements(deltaTime);
 
             if (element.IsPositionInside(api.Input.MouseX, api.Input.MouseY)) {
@@ -420,8 +436,7 @@ public class MNGuiElementContainer : GuiElement {
         }
 
         ElementBounds tempClipBounds;
-        foreach (GuiElement element in Elements) {
-            // Seperate due to clipping
+        foreach (GuiElement element in InteractiveElements) {
             if (element.HasFocus && renderFocusHighlight) {
                 if (InsideClipBounds != null) {
                     tempClipBounds = element.InsideClipBounds;
