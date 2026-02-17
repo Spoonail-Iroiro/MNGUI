@@ -5,7 +5,13 @@ using Vintagestory.API.Common;
 
 namespace MNGui.GuiElements;
 
+/// <summary>
+/// A button GuiElement that allows the click handler to be assigned after construction
+/// </summary>
 public class MNGuiElementTextButton : GuiElementTextButton {
+    /// <summary>
+    /// Click event handler invoked instead of the vanilla onClick handler.
+    /// </summary>
     public ActionConsumable? EventClicked { get; set; }
 
     public MNGuiElementTextButton(
@@ -17,6 +23,14 @@ public class MNGuiElementTextButton : GuiElementTextButton {
             EnumButtonStyle style = EnumButtonStyle.Normal,
             ActionConsumable? onClick = null
         ) : base(capi, text, font ?? CairoFont.ButtonText(), GetHoverFontAuto(hoverFont, font), () => true, bounds, style) {
+        /*
+         * GuiElementTextButton stores its click handler in a private field
+         * that can only be assigned via the constructor.
+         * 
+         * To allow late binding of the handler, this class:
+         * - passes a dummy handler to the base constructor
+         * - intercepts input handling and invokes EventClicked instead
+         */
         EventClicked = onClick;
     }
 
@@ -31,7 +45,8 @@ public class MNGuiElementTextButton : GuiElementTextButton {
     }
 
     public override void OnKeyDown(ICoreClientAPI api, KeyEvent args) {
-        // Overwrites base implemantation
+        // Overrides vanilla behavior to invoke EventClicked instead of the base handler
+
         if (!Visible) return;
         if (!HasFocus) return;
 
@@ -49,7 +64,7 @@ public class MNGuiElementTextButton : GuiElementTextButton {
     public override void OnMouseUpOnElement(ICoreClientAPI api, MouseEvent args) {
         var prevHandled = args.Handled;
         base.OnMouseUpOnElement(api, args);
-        // If Handled changed to true, the handler to the original called
+        // If Handled changed to true, that means the dummy onClick was called, therefore EventClicked should be invoked
         if (!prevHandled && args.Handled) {
             args.Handled = EventClicked?.Invoke() ?? false;
         }
