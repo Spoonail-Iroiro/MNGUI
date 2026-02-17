@@ -1,25 +1,17 @@
-﻿using Cairo;
-using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 
 namespace MNGui.GuiElements;
+
 /// <summary>
-/// Text button with proper default args and pressed handler
+/// A button GuiElement that allows the click handler to be assigned after construction
 /// </summary>
-/// <remarks>
-/// Wraps GuiElementTextButton BECAUSE the handler is private and can be set in the constructor
-/// </remarks>
-public class MNGuiElementTextButton : GuiElementControl {
-    public override bool Enabled {
-        get => InnerButton.Enabled;
-        set => InnerButton.Enabled = value;
-    }
-
-    public GuiElementTextButton InnerButton { get; private set; }
-
+public class MNGuiElementTextButton : GuiElementTextButton {
+    /// <summary>
+    /// Click event handler invoked instead of the vanilla onClick handler.
+    /// </summary>
     public ActionConsumable? EventClicked { get; set; }
 
     public MNGuiElementTextButton(
@@ -30,64 +22,51 @@ public class MNGuiElementTextButton : GuiElementControl {
             CairoFont? hoverFont = null,
             EnumButtonStyle style = EnumButtonStyle.Normal,
             ActionConsumable? onClick = null
-        )
-        : base(capi, bounds) {
-
-        if (font == null) {
-            font = CairoFont.ButtonText();
-        }
-
-        if (hoverFont == null) {
-            hoverFont = font.Clone().WithColor(GuiStyle.ActiveButtonTextColor);
-        }
-
-        InnerButton = new GuiElementTextButton(capi, text, font, hoverFont, InternalOnClick, bounds, style);
-
+        ) : base(capi, text, font ?? CairoFont.ButtonText(), GetHoverFontAuto(hoverFont, font), () => true, bounds, style) {
+        /*
+         * GuiElementTextButton stores its click handler in a private field
+         * that can only be assigned via the constructor.
+         * 
+         * To allow late binding of the handler, this class:
+         * - passes a dummy handler to the base constructor
+         * - intercepts input handling and invokes EventClicked instead
+         */
         EventClicked = onClick;
     }
 
-    private bool InternalOnClick() {
-        return EventClicked?.Invoke() ?? false;
-    }
+    protected static CairoFont GetHoverFontAuto(CairoFont? hoverFontSpecified, CairoFont? mainFont) {
+        if (hoverFontSpecified != null) return hoverFontSpecified;
 
-    #region events (handled by InnerButton) 
+        if (mainFont == null) {
+            mainFont = CairoFont.ButtonText();
+        }
 
-    public override void BeforeCalcBounds() {
-        InnerButton.BeforeCalcBounds();
-    }
-
-    public override void ComposeElements(Context ctx, ImageSurface surface) {
-        InnerButton.ComposeElements(ctx, surface);
-    }
-
-    public override void RenderInteractiveElements(float deltaTime) {
-        InnerButton.RenderInteractiveElements(deltaTime);
+        return mainFont.Clone().WithColor(GuiStyle.ActiveButtonTextColor);
     }
 
     public override void OnKeyDown(ICoreClientAPI api, KeyEvent args) {
-        InnerButton.OnKeyDown(api, args);
-    }
+        // Overrides vanilla behavior to invoke EventClicked instead of the base handler
 
-    public override void OnMouseMove(ICoreClientAPI api, MouseEvent args) {
-        InnerButton.OnMouseMove(api, args);
-    }
+        if (!Visible) return;
+        if (!HasFocus) return;
 
-    public override void OnMouseDownOnElement(ICoreClientAPI api, MouseEvent args) {
-        InnerButton.OnMouseDownOnElement(api, args);
-    }
-
-    public override void OnMouseUp(ICoreClientAPI api, MouseEvent args) {
-        InnerButton.OnMouseUp(api, args);
+        if (args.KeyCode == (int)GlKeys.Enter) {
+            args.Handled = true;
+            if (enabled) {
+                if (PlaySound) {
+                    api.Gui.PlaySound("menubutton_press");
+                }
+                args.Handled = EventClicked?.Invoke() ?? false;
+            }
+        }
     }
 
     public override void OnMouseUpOnElement(ICoreClientAPI api, MouseEvent args) {
-        InnerButton.OnMouseUpOnElement(api, args);
+        var prevHandled = args.Handled;
+        base.OnMouseUpOnElement(api, args);
+        // If Handled changed to true, that means the dummy onClick was called, therefore EventClicked should be invoked
+        if (!prevHandled && args.Handled) {
+            args.Handled = EventClicked?.Invoke() ?? false;
+        }
     }
-
-    public override void Dispose() {
-        InnerButton.Dispose();
-        base.Dispose();
-    }
-
-    #endregion
 }

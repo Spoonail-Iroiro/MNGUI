@@ -2,12 +2,21 @@
 using MNGui.Extensions;
 using MNGui.GuiElements.Layout;
 using MNGui.Layouts;
+using MNGui.Layouts.Extensions;
+using MNGui.Layouts.Interfaces;
 using System.Diagnostics.CodeAnalysis;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 
 namespace MNGui.GuiElements;
-public class MNGuiElementLayoutContainer : MNGuiElementContainer, ILayoutableElement {
+
+/// <summary>
+/// A container GuiElement for the Measure/Arrange layout system.
+/// Only works under a Measure/Arrange layout.
+/// Layout lifecycle (Init/Measure/ Arrange) is delegated to a parent;
+///   a parent container, usually the root, must listen to EventRelayoutRequired and trigger relayout when needed.
+/// </summary>
+public class MNGuiElementInnerLayoutContainer : MNGuiElementContainer, ILayoutableElement {
 
     protected LayoutWithElementBounds ChildLayout { get; set; }
 
@@ -16,7 +25,7 @@ public class MNGuiElementLayoutContainer : MNGuiElementContainer, ILayoutableEle
     /// Default layout Must not need to be disposed, since it might remain after container's Dispose
     protected LayoutWithElementBounds DefaultLayout => new VerticalLayout(api).Add(new GuiElementDummy(api, ElementBounds.FixedSize(1, 1)), "temp");
 
-    public MNGuiElementLayoutContainer(ICoreClientAPI capi, ElementBounds bounds, LayoutWithElementBounds? initialLayout = null) : base(capi, bounds) {
+    public MNGuiElementInnerLayoutContainer(ICoreClientAPI capi, ElementBounds bounds, LayoutWithElementBounds? initialLayout = null) : base(capi, bounds) {
         // Initial Layout
         var layout = initialLayout ?? DefaultLayout;
         ApplyNewLayoutImmediately(layout);
@@ -60,7 +69,7 @@ public class MNGuiElementLayoutContainer : MNGuiElementContainer, ILayoutableEle
         SetChildBound(ChildLayout.Bounds!);
 
         // Notify layout actually applied, to outside and parent
-        NotifyLayoutApplied();
+        NotifyRelayoutRequired();
     }
 
     protected void ResolvePendingNewLayout() {
@@ -91,7 +100,7 @@ public class MNGuiElementLayoutContainer : MNGuiElementContainer, ILayoutableEle
 
     public void AfterArrange() {
         // After parent layout's arrange, this element has proper spaceing in its bounds
-        ChildLayout.Arrange(new(0.0, 0.0), new(Bounds.UnscaledInnerWidth(), Bounds.UnscaledInnerWidth()));
+        ChildLayout.Arrange(new(0.0, 0.0), new(Bounds.UnscaledInnerWidth(), Bounds.UnscaledInnerHeight()));
     }
 
     public override void ComposeElements(Context ctx, ImageSurface surface) {

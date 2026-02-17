@@ -1,7 +1,7 @@
 ﻿using MNGui.Extensions;
 using MNGui.GuiElements;
 using MNGui.GuiElements.Layout;
-using MNGui.GuiElements.Layout;
+using MNGui.Layouts.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -14,33 +14,14 @@ using Vintagestory.GameContent;
 
 namespace MNGui.Layouts;
 
-public class HorizontalLayout : LenearLayoutBase {
-
-    public HorizontalLayoutAlignment Alignment { get; private set; }
-
+public class HorizontalLayout : LinearLayoutBase {
     public override string Name { get; set; } = "layout-horizontal";
 
-    public HorizontalLayout(ICoreClientAPI capi, int gap = 0, HorizontalLayoutAlignment alignment = HorizontalLayoutAlignment.Left) : base(capi, gap) {
-        Alignment = alignment;
-    }
-
-    public HorizontalLayout Add(GuiElement element, string name = null) {
-        AddInternal(element, name);
-        return this;
-    }
-
-    public HorizontalLayout Add(Func<GuiElement> createElement, string name = null) {
-        AddInternal(createElement, name);
-        return this;
-    }
-
-    public HorizontalLayout Add(LayoutBase layout) {
-        AddInternal(layout);
-        return this;
+    public HorizontalLayout(ICoreClientAPI capi, int gap = 0, HorizontalAlignment hAlign = HorizontalAlignment.Left, VerticalAlignment vAlign = VerticalAlignment.Top) : base(capi, gap, hAlign, vAlign) {
     }
 
     public HorizontalLayout AddHorizontalSpace(double length) {
-        return Add(new GuiElementParent(capi, ElementBounds.Fixed(0, 0, length, 1)));
+        return this.Add(new GuiElementParent(capi, ElementBounds.Fixed(0, 0, length, 1)));
     }
 
     public override void Init() {
@@ -89,31 +70,75 @@ public class HorizontalLayout : LenearLayoutBase {
 
         // All children set, now calc myself
         // First, just fit to children
-        Element.BeforeCalcBounds();
+        Element!.BeforeCalcBounds();
         Bounds!.CalcWorldBounds();
 
         // TODO: SizePolicy-specific recalc of MinWidth/Height
-
-        // If MinSize is smaller than CustomMinSize, fix for each side
-        if (CustomMinWidth != null && MinWidth < CustomMinWidth.Value) {
-            Bounds.WithUnscaledOuterWidth(CustomMinWidth.Value);
-        }
-        if (CustomMinHeight != null && MinHeight < CustomMinHeight.Value) {
-            Bounds.WithUnscaledOuterHeight(CustomMinHeight.Value);
-        }
     }
 
     public override void Arrange(Vec2 fixedPos, Size availableSize) {
-        // TODO: various aligning (currently only topleft)
-        AlignChildrenTopLeft();
+        if (Bounds == null) throw new InvalidOperationException($"Call Measure before Arrange!");
+        var innerMinSize = new Size(Bounds.UnscaledInnerWidth(), Bounds.UnscaledInnerHeight()); // Needs when align
+        // Apply arrange myself
+        Bounds.WithFixedPosition(fixedPos.X, fixedPos.Y);
+        Bounds.WithUnscaledOuterWidth(availableSize.Width);
+        Bounds.WithUnscaledOuterHeight(availableSize.Height);
+        Bounds.CalcWorldBounds();
+
+        // TODO:  if (ChildLayouts.Count == 0) 
+
+        // Now I have available size (UnscaledInnerWidth/Height), lets assign it to children
+        var children = new List<LayoutWithElementBounds>();
+        var hasFillElementHorizontal = false;
+
         foreach (LayoutBase layout in ChildLayouts) {
             if (layout is LayoutWithElementBounds lweb) {
-                if (lweb.Bounds == null) throw new InvalidOperationException($"Call Measure before Arrange!");
-                layout.Arrange(new Vec2(lweb.Bounds.fixedX, lweb.Bounds.fixedY), lweb.MinSize);
+                children.Add(lweb);
+                if (IsStretchingSizePolicy(lweb.HorizontalSizePolicy)) {
+                    hasFillElementHorizontal = true;
+                }
+                //layout.Arrange(new Vec2(lweb.Bounds.fixedX, lweb.Bounds.fixedY), lweb.MinSize);
             }
             else {
                 throw new NotImplementedException("We're not prepared for layouts without bounds...");
             }
+        }
+
+        var actualSizePoliciesHorizontal = children.Select(ch => ch.GetAdjustedHorizontalSizePolicy(hasFillElementHorizontal)).ToList();
+        var actualStretchWeightHorizontal = children.Select(ch => ch.HorizontalStretchWeight).ToList(); // MinSize will be ignored
+        var minWidthes = children.Select(ch => ch.MinWidth).ToList();
+        var actualSizePoliciesVertical = children.Select(ch => ch.VerticalSizePolicy == SizePolicy.UnspecifiedLayout ? SizePolicy.Stretch : ch.VerticalSizePolicy).ToList();
+        //var actualStretchWeightVertical = children.Select(ch => 1.0).ToList(); // MinSize will be ignored, full height if fill
+
+        var availableWidth = Bounds.UnscaledInnerWidth();
+        var availableHeight = Bounds.UnscaledInnerHeight();
+        availableWidth -= Gap * (children.Count - 1);
+
+        var distributedWidthes = CalcDistributedLength(availableWidth, minWidthes, actualSizePoliciesHorizontal, actualStretchWeightHorizontal);
+        var heights = Enumerable.Zip(actualSizePoliciesVertical, children).Select(pair => pair.First == SizePolicy.MinSize ? pair.Second.MinHeight : availableHeight);
+
+        var needHorizontalAlignment = !actualSizePoliciesHorizontal.Any(IsStretchingSizePolicy); // If some elemnt is fill, remaining space will be consumed, so no need to align
+        var startX = 0.0;
+        if (needHorizontalAlignment) {
+            startX = HorizontalAlignment switch {
+                HorizontalAlignment.Center => (availableWidth - innerMinSize.Width) / 2.0,
+                HorizontalAlignment.Right => availableWidth - innerMinSize.Width,
+                _ => 0.0
+            };
+        }
+
+        var fixedXs = CalcAlignedPositions(startX, distributedWidthes, Gap);
+        var fixedYs = heights.Select(hei => {
+            var y = VerticalAlignment switch {
+                VerticalAlignment.Middle => (availableHeight - hei) / 2.0,
+                VerticalAlignment.Bottom => availableHeight - hei,
+                _ => 0.0
+            };
+            return y;
+        }).ToList();
+
+        foreach (var ((fixedX, fixedY), (width, height), lweb) in Enumerable.Zip(Enumerable.Zip(fixedXs, fixedYs), Enumerable.Zip(distributedWidthes, heights), children)) {
+            lweb.Arrange(new Vec2(fixedX, fixedY), new Size(width, height));
         }
     }
 
@@ -139,40 +164,4 @@ public class HorizontalLayout : LenearLayoutBase {
             currentX = childBounds.UnscaledAbsFixedX() + childBounds.UnscaledOuterWidth() + Gap;
         }
     }
-
-    //public override void Arrange(Size availableSize) {
-    //    // Todo: align to right
-    //    foreach (LayoutBase layout in ChildLayouts) {
-    //        layout.Arrange(layout.MinSize);
-    //    }
-
-    //    //if (Alignment == HorizontalLayoutAlignment.Right) {
-    //    //    var elem = ThisContainer.Elements.FirstOrDefault();
-    //    //    if (elem != null) {
-    //    //        // Hacky, only make sense when directly under a vertical layout
-    //    //        elem.BeforeCalcBounds();
-    //    //        elem.Bounds.CalcWorldBounds();
-    //    //        elem.Bounds.fixedOffsetX = (ThisContainer.Bounds.ParentBounds.InnerWidth - elem.Bounds.OuterWidth) / RuntimeEnv.GUIScale;
-    //    //        elem.Bounds.CalcWorldBounds();
-    //    //    }
-    //    //}
-
-    //    //foreach (LayoutBase layout in ChildLayouts) {
-    //    //    // Prevent useless right aligned Horizontal layout
-    //    //    if (layout is HorizontalLayout hlayout && hlayout.Alignment == HorizontalLayoutAlignment.Right) {
-    //    //        throw new InvalidOperationException($"Right aligned HorizontalLayout is currently allowed direct under VerticalLayout");
-    //    //    }
-    //    //    layout.Arrange();
-    //    //}
-    //}
-
-    //protected void ConnectBoundsRight(ElementBounds newBounds, ElementBounds originBounds) {
-    //    newBounds.FitToChildrenFixedRightOf(originBounds);
-    //}
-
-    //protected void ConnectBoundsRightWithInterval(ElementBounds newBounds, ElementBounds originBounds) {
-    //    newBounds.fixedX = originBounds.UnscaledAbsFixedX() 
-    //    //newBounds.FitToChildrenFixedRightOf(originBounds, Gap);
-    //}
-
 }

@@ -1,0 +1,50 @@
+﻿using Cairo;
+using System.Collections.Generic;
+using System.Linq;
+using Vintagestory.API.Client;
+using Vintagestory.API.MathTools;
+
+namespace MNGui.GuiElements;
+public class MNGuiElementStaticText : GuiElementTextBase {
+    public EnumTextOrientation Orientation { get; protected set; }
+    public Vec4d? BackgroundColor { get; protected set; }
+
+    public MNGuiElementStaticText(
+            ICoreClientAPI capi,
+            string text,
+            ElementBounds bounds,
+            CairoFont? font = null,
+            EnumTextOrientation orientation = EnumTextOrientation.Left,
+            Vec4d? backgroundColorRGBA = null
+        ) : base(capi, text, font, bounds) {
+        if (Font == null) Font = CairoFont.WhiteDetailText();
+
+        this.Orientation = orientation;
+        this.BackgroundColor = backgroundColorRGBA;
+    }
+
+
+    public override void ComposeTextElements(Context ctx, ImageSurface surface) {
+        Bounds.CalcWorldBounds();
+        if (BackgroundColor != null) {
+            // Background
+            ctx.SetSourceRGBA(BackgroundColor.X, BackgroundColor.Y, BackgroundColor.Z, BackgroundColor.W);
+            GuiElement.RoundRectangle(ctx, Bounds.bgDrawX, Bounds.bgDrawY, Bounds.OuterWidth, Bounds.OuterHeight, 1.0);
+            ctx.Fill();
+        }
+        // Text
+        textUtil.AutobreakAndDrawMultilineTextAt(ctx, Font, text, (int)(Bounds.drawX), (int)(Bounds.drawY), Bounds.InnerWidth, Orientation);
+    }
+
+    public MNGuiElementStaticText WithAutoBoxSize(bool onlyGrow = false) {
+        Font.AutoBoxSize(text, Bounds, onlyGrow);
+        return this;
+    }
+
+    public MNGuiElementStaticText WithAutoFontSize(bool onlyShrink = true) {
+        Bounds.CalcWorldBounds();
+        Font.AutoFontSize(text, Bounds, onlyShrink);
+        return this;
+    }
+
+}

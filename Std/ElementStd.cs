@@ -18,7 +18,7 @@ internal class ElementStd {
     public GuiElementStaticText TextAutoBoxSize(
         string text,
         EnumTextOrientation orientation = EnumTextOrientation.Left,
-        CairoFont font = null
+        CairoFont? font = null
     ) {
         if (font == null) {
             font = CairoFont.WhiteDetailText();
@@ -43,7 +43,7 @@ internal class ElementStd {
         ElementBounds bounds,
         bool onlyShrink = false,
         EnumTextOrientation orientation = EnumTextOrientation.Left,
-        CairoFont font = null
+        CairoFont? font = null
     ) {
         throw new NotImplementedException();
     }
@@ -51,7 +51,7 @@ internal class ElementStd {
     public GuiElementRichtext StandardRichText(
         string vtml,
         double width,
-        CairoFont font = null
+        CairoFont? font = null
     ) {
         if (font == null) font = CairoFont.WhiteDetailText();
         var richText = new GuiElementRichtext(
