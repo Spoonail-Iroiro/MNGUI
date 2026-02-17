@@ -10,9 +10,11 @@ namespace MNGui.GuiElements;
 /// Text button with proper default args and pressed handler
 /// </summary>
 /// <remarks>
-/// Wraps GuiElementTextButton BECAUSE the handler is private and can be set in the constructor
+/// Wraps GuiElementTextButton BECAUSE the handler is private and can be set only from the constructor
 /// </remarks>
 public class MNGuiElementTextButton : GuiElementControl {
+    public override bool Focusable => InnerButton.Focusable;
+
     public override bool Enabled {
         get => InnerButton.Enabled;
         set => InnerButton.Enabled = value;

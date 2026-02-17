@@ -106,19 +106,21 @@ public class MNGuiElementContainer : GuiElement {
 
         if (IsInteractiveElement(elem)) {
             InteractiveElements.Add(elem);
+
+            // Tabbable only interactive elements
+            if (elem.Focusable) {
+                elem.TabIndex = currentFocusableElementCount++;
+                Tabbable = true;
+            }
+            else {
+                elem.TabIndex = -1;
+            }
         }
 
         if (name != null) {
             NamedElements[name] = elem;
         }
 
-        if (elem.Focusable) {
-            elem.TabIndex = currentFocusableElementCount++;
-            Tabbable = true;
-        }
-        else {
-            elem.TabIndex = -1;
-        }
 
         if (elem is MNGuiElementClipStart clipStart) {
             InsideClipBoundsStack.Push(clipStart.Bounds);
@@ -287,17 +289,17 @@ public class MNGuiElementContainer : GuiElement {
         // TODO: is this guard correct?
         if (InsideClipBounds?.PointInside(args.X, args.Y) == false) return;
 
-        bool beforeHandled = false;
-        bool nowHandled = false;
         renderFocusHighlight = false;
+        bool triggered = false;
 
         foreach (GuiElement element in InteractiveElements) {
-            if (!beforeHandled) {
+            var handledThis = false;
+            if (!triggered) {
                 element.OnMouseDown(api, args);
-                nowHandled = args.Handled;
+                handledThis = args.Handled;
             }
 
-            if (!beforeHandled && nowHandled) {
+            if (!triggered && handledThis) {
                 if (element.Focusable && !element.HasFocus) {
                     element.OnFocusGained();
                 }
@@ -308,7 +310,7 @@ public class MNGuiElementContainer : GuiElement {
                 }
             }
 
-            beforeHandled = nowHandled;
+            triggered = triggered || handledThis;
         }
 
         if (!args.Handled) base.OnMouseDown(api, args);
@@ -318,9 +320,7 @@ public class MNGuiElementContainer : GuiElement {
     public override void OnMouseMove(ICoreClientAPI api, MouseEvent args) {
         foreach (GuiElement element in InteractiveElements) {
             element.OnMouseMove(api, args);
-            if (args.Handled) {
-                break;
-            }
+            if (args.Handled) break;
         }
 
         if (!args.Handled) base.OnMouseMove(api, args);
@@ -347,9 +347,9 @@ public class MNGuiElementContainer : GuiElement {
             var elem = CurrentTabIndexElement;
             if (elem != null && MaxTabIndex > 0) {
                 int dir = args.ShiftPressed ? -1 : 1;
-                int tb = elem.TabIndex + dir;
-                if (tb < 0 || tb > MaxTabIndex || args.CtrlPressed) return;
-                FocusElement(tb);
+                int nextTabIndex = elem.TabIndex + dir;
+                if (nextTabIndex < 0 || nextTabIndex > MaxTabIndex || args.CtrlPressed) return;
+                FocusElement(nextTabIndex);
                 args.Handled = true;
             }
             else if (MaxTabIndex > 0) {
@@ -471,7 +471,7 @@ public class MNGuiElementContainer : GuiElement {
     public bool FocusElement(int tabIndex) {
         GuiElement? newFocusedElement = null;
 
-        foreach (GuiElement element in Elements) {
+        foreach (GuiElement element in InteractiveElements) {
             if (element.Focusable && element.TabIndex == tabIndex) {
                 newFocusedElement = element;
                 break;
