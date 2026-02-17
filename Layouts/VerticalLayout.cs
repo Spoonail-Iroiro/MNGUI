@@ -17,7 +17,7 @@ public class VerticalLayout : LenearLayoutBase {
     // Name only for display (like debugging bounds)
     public override string Name { get; set; } = "layout-vertical";
 
-    public VerticalLayout(ICoreClientAPI capi, int gap = 0, VerticalAlignment alignment = VerticalAlignment.Top) : base(capi, gap) {
+    public VerticalLayout(ICoreClientAPI capi, int gap = 0, HorizontalAlignment hAlign = HorizontalAlignment.Left, VerticalAlignment vAlign = VerticalAlignment.Top) : base(capi, gap, hAlign, vAlign) {
     }
 
     public VerticalLayout WithSizePolicy(SizePolicy? horizontalSizePolicy = null, SizePolicy? verticalSizePolicy = null) {
@@ -158,9 +158,24 @@ public class VerticalLayout : LenearLayoutBase {
         var widthes = Enumerable.Zip(actualSizePoliciesHorizontal, children).Select(pair => pair.First == SizePolicy.MinSize ? pair.Second.MinWidth : availableWidth);
 
         var needVerticalAlignment = !actualSizePoliciesVertical.Any(IsStretchingSizePolicy);
-        // TODO: alignment
-        var fixedXs = widthes.Select(_ => 0.0).ToList();
-        var fixedYs = CalcAlignedPositions(0.0, distributedHeights, Gap);
+        var startY = 0.0;
+        if (needVerticalAlignment) {
+            startY = VerticalAlignment switch {
+                VerticalAlignment.Middle => (availableHeight - innerMinSize.Height) / 2.0,
+                VerticalAlignment.Bottom => (availableHeight - innerMinSize.Height),
+                _ => 0.0
+            };
+        }
+
+        var fixedXs = widthes.Select(wi => {
+            var x = HorizontalAlignment switch {
+                HorizontalAlignment.Center => (availableWidth - wi) / 2.0,
+                HorizontalAlignment.Right => (availableWidth - wi),
+                _ => 0.0
+            };
+            return x;
+        }).ToList();
+        var fixedYs = CalcAlignedPositions(startY, distributedHeights, Gap);
 
         foreach (var ((fixedX, fixedY), (width, height), lweb) in Enumerable.Zip(Enumerable.Zip(fixedXs, fixedYs), Enumerable.Zip(widthes, distributedHeights), children)) {
             lweb.Arrange(new Vec2(fixedX, fixedY), new Size(width, height));

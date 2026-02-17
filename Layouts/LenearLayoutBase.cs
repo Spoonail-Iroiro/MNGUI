@@ -36,7 +36,7 @@ public abstract class LenearLayoutBase : LayoutWithElementBounds {
 
     public override ElementBounds? Bounds => (Element?.Bounds ?? bounds);
 
-    public LenearLayoutBase(ICoreClientAPI capi, int gap) {
+    public LenearLayoutBase(ICoreClientAPI capi, int gap, HorizontalAlignment hAlign, VerticalAlignment vAlign) {
         this.capi = capi;
         Gap = gap;
 
@@ -44,6 +44,9 @@ public abstract class LenearLayoutBase : LayoutWithElementBounds {
         VerticalSizePolicy = SizePolicy.UnspecifiedLayout;
         HorizontalStretchWeight = 1.0;
         VerticalStretchWeight = 1.0;
+
+        HorizontalAlignment = hAlign;
+        VerticalAlignment = vAlign;
     }
 
 

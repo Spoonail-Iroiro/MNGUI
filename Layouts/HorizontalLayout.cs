@@ -17,7 +17,7 @@ namespace MNGui.Layouts;
 public class HorizontalLayout : LenearLayoutBase {
     public override string Name { get; set; } = "layout-horizontal";
 
-    public HorizontalLayout(ICoreClientAPI capi, int gap = 0, HorizontalAlignment alignment = HorizontalAlignment.Left) : base(capi, gap) {
+    public HorizontalLayout(ICoreClientAPI capi, int gap = 0, HorizontalAlignment hAlign = HorizontalAlignment.Left, VerticalAlignment vAlign = VerticalAlignment.Top) : base(capi, gap, hAlign, vAlign) {
     }
 
     public HorizontalLayout WithSizePolicy(SizePolicy? horizontalSizePolicy = null, SizePolicy? verticalSizePolicy = null) {
@@ -167,9 +167,24 @@ public class HorizontalLayout : LenearLayoutBase {
         var heights = Enumerable.Zip(actualSizePoliciesVertical, children).Select(pair => pair.First == SizePolicy.MinSize ? pair.Second.MinHeight : availableHeight);
 
         var needHorizontalAlignment = !actualSizePoliciesHorizontal.Any(IsStretchingSizePolicy); // If some elemnt is fill, remaining space will be consumed, so no need to align
-        // TODO: alignment
-        var fixedXs = CalcAlignedPositions(0.0, distributedWidthes, Gap);
-        var fixedYs = heights.Select(_ => 0.0).ToList();
+        var startX = 0.0;
+        if (needHorizontalAlignment) {
+            startX = HorizontalAlignment switch {
+                HorizontalAlignment.Center => (availableWidth - innerMinSize.Width) / 2.0,
+                HorizontalAlignment.Right => availableWidth - innerMinSize.Width,
+                _ => 0.0
+            };
+        }
+
+        var fixedXs = CalcAlignedPositions(startX, distributedWidthes, Gap);
+        var fixedYs = heights.Select(hei => {
+            var y = VerticalAlignment switch {
+                VerticalAlignment.Middle => (availableHeight - hei) / 2.0,
+                VerticalAlignment.Bottom => availableHeight - hei,
+                _ => 0.0
+            };
+            return y;
+        }).ToList();
 
         foreach (var ((fixedX, fixedY), (width, height), lweb) in Enumerable.Zip(Enumerable.Zip(fixedXs, fixedYs), Enumerable.Zip(distributedWidthes, heights), children)) {
             lweb.Arrange(new Vec2(fixedX, fixedY), new Size(width, height));
