@@ -1,7 +1,7 @@
 ﻿using MNGui.Extensions;
 using MNGui.GuiElements;
 using MNGui.GuiElements.Layout;
-using MNGui.GuiElements.Layout;
+using MNGui.Layouts.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -20,47 +20,8 @@ public class HorizontalLayout : LenearLayoutBase {
     public HorizontalLayout(ICoreClientAPI capi, int gap = 0, HorizontalAlignment hAlign = HorizontalAlignment.Left, VerticalAlignment vAlign = VerticalAlignment.Top) : base(capi, gap, hAlign, vAlign) {
     }
 
-    public HorizontalLayout WithSizePolicy(SizePolicy? horizontalSizePolicy = null, SizePolicy? verticalSizePolicy = null) {
-        WithSizePolicyInternal(horizontalSizePolicy, verticalSizePolicy);
-        return this;
-    }
-
-    public HorizontalLayout WithAlignment(HorizontalAlignment? horizontalAlignment = null, VerticalAlignment? verticalAlignment = null) {
-        WithAlignmentInternal(horizontalAlignment, verticalAlignment);
-        return this;
-    }
-
-    public HorizontalLayout Add(
-            GuiElement element,
-            string? name = null,
-            SizePolicy? hSizePolicy = null,
-            double hStretchWeight = 1.0,
-            SizePolicy? vSizePolicy = null,
-            double vStretchWeight = 1.0
-        ) {
-        AddInternal(element, name, hSizePolicy, hStretchWeight, vSizePolicy, vStretchWeight);
-        return this;
-    }
-
-    public HorizontalLayout Add(
-            Func<GuiElement> createElement,
-            string? name = null,
-            SizePolicy? hSizePolicy = null,
-            double hStretchWeight = 1.0,
-            SizePolicy? vSizePolicy = null,
-            double vStretchWeight = 1.0
-        ) {
-        AddInternal(createElement, name, hSizePolicy, hStretchWeight, vSizePolicy, vStretchWeight);
-        return this;
-    }
-
-    public HorizontalLayout Add(LayoutBase layout) {
-        AddInternal(layout);
-        return this;
-    }
-
     public HorizontalLayout AddHorizontalSpace(double length) {
-        return Add(new GuiElementParent(capi, ElementBounds.Fixed(0, 0, length, 1)));
+        return this.Add(new GuiElementParent(capi, ElementBounds.Fixed(0, 0, length, 1)));
     }
 
     public override void Init() {
@@ -113,16 +74,6 @@ public class HorizontalLayout : LenearLayoutBase {
         Bounds!.CalcWorldBounds();
 
         // TODO: SizePolicy-specific recalc of MinWidth/Height
-
-        // If MinSize is smaller than CustomMinSize, fix for each side
-        if (CustomMinWidth != null && MinWidth < CustomMinWidth.Value) {
-            Bounds.WithUnscaledOuterWidth(CustomMinWidth.Value);
-            Bounds.CalcWorldBounds();
-        }
-        if (CustomMinHeight != null && MinHeight < CustomMinHeight.Value) {
-            Bounds.WithUnscaledOuterHeight(CustomMinHeight.Value);
-            Bounds.CalcWorldBounds();
-        }
     }
 
     public override void Arrange(Vec2 fixedPos, Size availableSize) {
@@ -213,40 +164,4 @@ public class HorizontalLayout : LenearLayoutBase {
             currentX = childBounds.UnscaledAbsFixedX() + childBounds.UnscaledOuterWidth() + Gap;
         }
     }
-
-    //public override void Arrange(Size availableSize) {
-    //    // Todo: align to right
-    //    foreach (LayoutBase layout in ChildLayouts) {
-    //        layout.Arrange(layout.MinSize);
-    //    }
-
-    //    //if (Alignment == HorizontalLayoutAlignment.Right) {
-    //    //    var elem = ThisContainer.Elements.FirstOrDefault();
-    //    //    if (elem != null) {
-    //    //        // Hacky, only make sense when directly under a vertical layout
-    //    //        elem.BeforeCalcBounds();
-    //    //        elem.Bounds.CalcWorldBounds();
-    //    //        elem.Bounds.fixedOffsetX = (ThisContainer.Bounds.ParentBounds.InnerWidth - elem.Bounds.OuterWidth) / RuntimeEnv.GUIScale;
-    //    //        elem.Bounds.CalcWorldBounds();
-    //    //    }
-    //    //}
-
-    //    //foreach (LayoutBase layout in ChildLayouts) {
-    //    //    // Prevent useless right aligned Horizontal layout
-    //    //    if (layout is HorizontalLayout hlayout && hlayout.Alignment == HorizontalLayoutAlignment.Right) {
-    //    //        throw new InvalidOperationException($"Right aligned HorizontalLayout is currently allowed direct under VerticalLayout");
-    //    //    }
-    //    //    layout.Arrange();
-    //    //}
-    //}
-
-    //protected void ConnectBoundsRight(ElementBounds newBounds, ElementBounds originBounds) {
-    //    newBounds.FitToChildrenFixedRightOf(originBounds);
-    //}
-
-    //protected void ConnectBoundsRightWithInterval(ElementBounds newBounds, ElementBounds originBounds) {
-    //    newBounds.fixedX = originBounds.UnscaledAbsFixedX() 
-    //    //newBounds.FitToChildrenFixedRightOf(originBounds, Gap);
-    //}
-
 }

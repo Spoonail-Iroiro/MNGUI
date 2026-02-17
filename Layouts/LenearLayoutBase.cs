@@ -12,12 +12,9 @@ using MNGui.Util;
 
 namespace MNGui.Layouts;
 
-public abstract class LenearLayoutBase : LayoutWithElementBounds {
+public abstract class LenearLayoutBase : LayoutWithElementBounds, IChildLayoutMixin {
     public HorizontalAlignment HorizontalAlignment { get; private set; }
     public VerticalAlignment VerticalAlignment { get; private set; }
-
-    public double? CustomMinWidth { get; set; } = null;
-    public double? CustomMinHeight { get; set; } = null;
 
     protected ICoreClientAPI capi;
 
@@ -49,8 +46,7 @@ public abstract class LenearLayoutBase : LayoutWithElementBounds {
         VerticalAlignment = vAlign;
     }
 
-
-    protected void WithAlignmentInternal(HorizontalAlignment? horizontalAlignment, VerticalAlignment? verticalAlignment) {
+    public virtual void SetAlignment(HorizontalAlignment? horizontalAlignment, VerticalAlignment? verticalAlignment) {
         if (horizontalAlignment != null) {
             HorizontalAlignment = horizontalAlignment.Value;
         }
@@ -58,41 +54,6 @@ public abstract class LenearLayoutBase : LayoutWithElementBounds {
         if (verticalAlignment != null) {
             VerticalAlignment = verticalAlignment.Value;
         }
-    }
-
-    protected void AddInternal(
-            GuiElement element,
-            string? name,
-            SizePolicy? hSizePolicy,
-            double hStretchWeight,
-            SizePolicy? vSizePolicy,
-            double vStretchWeight
-        ) {
-        var elementAsLayout = new SingleLayout(element, name);
-        if (hSizePolicy != null) {
-            elementAsLayout.WithHorizontalSizePolicy(hSizePolicy.Value, hStretchWeight);
-        }
-
-        if (vSizePolicy != null) {
-            elementAsLayout.WithVerticalSizePolicy(vSizePolicy.Value, vStretchWeight);
-        }
-
-        AddInternal(elementAsLayout);
-    }
-
-    protected void AddInternal(
-            Func<GuiElement> createElement,
-            string? name,
-            SizePolicy? hSizePolicy,
-            double hStretchWeight,
-            SizePolicy? vSizePolicy,
-            double vStretchWeight
-        ) {
-        AddInternal(createElement(), name, hSizePolicy, hStretchWeight, vSizePolicy, vStretchWeight);
-    }
-
-    protected void AddInternal(LayoutBase layout) {
-        ChildLayouts.Add(layout);
     }
 
     // TODO: shared default bounds? 
@@ -120,7 +81,6 @@ public abstract class LenearLayoutBase : LayoutWithElementBounds {
             }
         }
     }
-
 
     /// <summary>
     /// Returns is it's stretching size policy that pripritized than UnspecifiedLayout + SpaceGreeding

@@ -8,10 +8,13 @@ using MNGui.Util;
 namespace MNGui.Layouts;
 
 // For wrapper-type GuiElement with single child layout
-public class SimpleWrapperLayout : SingleLayout {
+public class SimpleWrapperLayout : SingleLayout, IChildLayoutMixin {
     public List<LayoutBase> ChildLayouts { get; set; } = new();
 
     public SimpleWrapperLayout(GuiElement guiElement, string? name = null) : base(guiElement, name) {
+    }
+
+    public SimpleWrapperLayout(Func<GuiElement> createGuiElement, string? name = null) : base(createGuiElement, name) {
     }
 
     new public SimpleWrapperLayout WithMaxWidth(double maxWidth) {
@@ -21,21 +24,6 @@ public class SimpleWrapperLayout : SingleLayout {
 
     new public SimpleWrapperLayout WithMaxHeight(double maxHeight) {
         WithMaxHeightInternal(maxHeight);
-        return this;
-    }
-
-    new public SimpleWrapperLayout WithHorizontalSizePolicy(SizePolicy horizontalSizePolicy, double weight = 1.0) {
-        WithHorizontalSizePolicyInternal(horizontalSizePolicy, weight);
-        return this;
-    }
-
-    new public SimpleWrapperLayout WithVerticalSizePolicy(SizePolicy verticalSizePolicy, double weight = 1.0) {
-        WithVerticalSizePolicyInternal(verticalSizePolicy, weight);
-        return this;
-    }
-
-    public SimpleWrapperLayout Add(LayoutBase layout) {
-        ChildLayouts.Add(layout);
         return this;
     }
 

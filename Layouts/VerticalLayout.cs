@@ -1,14 +1,10 @@
-﻿using MNGui.GuiElements;
-using MNGui.Extensions;
+﻿using MNGui.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Vintagestory.API.Client;
-using Vintagestory.Client.NoObf;
 using MNGui.GuiElements.Layout;
-using Vintagestory.API.Config;
+using MNGui.Layouts.Extensions;
 
 namespace MNGui.Layouts;
 
@@ -20,47 +16,8 @@ public class VerticalLayout : LenearLayoutBase {
     public VerticalLayout(ICoreClientAPI capi, int gap = 0, HorizontalAlignment hAlign = HorizontalAlignment.Left, VerticalAlignment vAlign = VerticalAlignment.Top) : base(capi, gap, hAlign, vAlign) {
     }
 
-    public VerticalLayout WithSizePolicy(SizePolicy? horizontalSizePolicy = null, SizePolicy? verticalSizePolicy = null) {
-        WithSizePolicyInternal(horizontalSizePolicy, verticalSizePolicy);
-        return this;
-    }
-
-    public VerticalLayout WithAlignment(HorizontalAlignment? horizontalAlignment = null, VerticalAlignment? verticalAlignment = null) {
-        WithAlignmentInternal(horizontalAlignment, verticalAlignment);
-        return this;
-    }
-
-    public VerticalLayout Add(
-            GuiElement element,
-            string? name = null,
-            SizePolicy? hSizePolicy = null,
-            double hStretchWeight = 1.0,
-            SizePolicy? vSizePolicy = null,
-            double vStretchWeight = 1.0
-        ) {
-        AddInternal(element, name, hSizePolicy, hStretchWeight, vSizePolicy, vStretchWeight);
-        return this;
-    }
-
-    public VerticalLayout Add(
-            Func<GuiElement> createElement,
-            string? name = null,
-            SizePolicy? hSizePolicy = null,
-            double hStretchWeight = 1.0,
-            SizePolicy? vSizePolicy = null,
-            double vStretchWeight = 1.0
-        ) {
-        AddInternal(createElement, name, hSizePolicy, hStretchWeight, vSizePolicy, vStretchWeight);
-        return this;
-    }
-
-    public VerticalLayout Add(LayoutBase layout) {
-        AddInternal(layout);
-        return this;
-    }
-
     public VerticalLayout AddVerticalSpace(double length) {
-        return Add(new GuiElementParent(capi, ElementBounds.Fixed(0, 0, 1, length)));
+        return this.Add(new GuiElementParent(capi, ElementBounds.Fixed(0, 0, 1, length)));
     }
 
     public override void Init() {
@@ -108,16 +65,6 @@ public class VerticalLayout : LenearLayoutBase {
         Bounds!.CalcWorldBounds();
 
         // TODO: SizePolicy-specific recalc of MinWidth/Height
-
-        // If MinSize is smaller than CustomMinSize, fix for each side
-        if (CustomMinWidth != null && MinWidth < CustomMinWidth.Value) {
-            Bounds.WithUnscaledOuterWidth(CustomMinWidth.Value);
-            Bounds.CalcWorldBounds();
-        }
-        if (CustomMinHeight != null && MinHeight < CustomMinHeight.Value) {
-            Bounds.WithUnscaledOuterHeight(CustomMinHeight.Value);
-            Bounds.CalcWorldBounds();
-        }
     }
 
     public override void Arrange(Vec2 fixedPos, Size availableSize) {
@@ -203,13 +150,4 @@ public class VerticalLayout : LenearLayoutBase {
             currentY = childBounds.UnscaledAbsFixedY() + childBounds.UnscaledOuterHeight() + Gap;
         }
     }
-
-
-    //protected void ConnectBoundsUnder(ElementBounds newBounds, ElementBounds originBounds) {
-    //    newBounds.FitToChildrenFixedUnder(originBounds);
-    //}
-
-    //protected void ConnectBoundsUnderWithInterval(ElementBounds newBounds, ElementBounds originBounds) {
-    //    newBounds.FitToChildrenFixedUnder(originBounds, Gap);
-    //}
 }

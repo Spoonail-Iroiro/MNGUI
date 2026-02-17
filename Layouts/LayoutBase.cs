@@ -54,14 +54,14 @@ public abstract class LayoutBase {
         return Enumerable.Empty<GuiElementInfo>();
     }
 
-    protected void WithSizePolicyInternal(SizePolicy? horizontalSizePolicy, SizePolicy? verticalSizePolicy) {
-        if (horizontalSizePolicy != null) {
-            HorizontalSizePolicy = horizontalSizePolicy.Value;
-        }
+    public virtual void SetHorizontalSizePolicy(SizePolicy horizontalSizePolicy, double weight) {
+        HorizontalSizePolicy = horizontalSizePolicy;
+        HorizontalStretchWeight = weight;
+    }
 
-        if (verticalSizePolicy != null) {
-            VerticalSizePolicy = verticalSizePolicy.Value;
-        }
+    public virtual void SetVerticalSizePolicy(SizePolicy verticalSizePolicy, double weight) {
+        VerticalSizePolicy = verticalSizePolicy;
+        VerticalStretchWeight = weight;
     }
 
     public SizePolicy GetAdjustedHorizontalSizePolicy(bool hasFillSibling) {

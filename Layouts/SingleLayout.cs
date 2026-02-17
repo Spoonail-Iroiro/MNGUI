@@ -25,8 +25,8 @@ public class SingleLayout : LayoutWithElementBounds {
 
     public GuiElement Element { get; private set; }
 
-    public ElementSizeConstraint HorizontalElementSizeConstraint { get; set; } = ElementSizeConstraint.RawBounds;
-    public ElementSizeConstraint VerticalElementSizeConstraint { get; set; } = ElementSizeConstraint.RawBounds;
+    public ElementSizeConstraint HorizontalElementSizeConstraint { get; protected set; } = ElementSizeConstraint.RawBounds;
+    public ElementSizeConstraint VerticalElementSizeConstraint { get; protected set; } = ElementSizeConstraint.RawBounds;
     public double MaxWidth { get; set; } = double.MaxValue;
     public double MaxHeight { get; set; } = double.MaxValue;
 
@@ -37,10 +37,13 @@ public class SingleLayout : LayoutWithElementBounds {
     protected bool IsCustomNameSet { get; set; } = false;
 
     /// <summary>
-    /// Creates a SingleLayout, which usually holds a GuiElement. If name is specified and the element's bounds has no name, "bounds-{name}" will be set.
+    /// Creates a ElementLayout, which usually holds a GuiElement.
     /// </summary>
     /// <param name="guiElement"></param>
     /// <param name="name">Name for this layout, and also a part of the name of the element's bounds if it doesn't have one yet</param>
+    /// <remarks>
+    /// If name is specified and the element's bounds has no name, "bounds-{name}" will be set
+    /// </remarks>
     public SingleLayout(GuiElement guiElement, string? name = null) {
         Element = guiElement;
         if (name != null) {
@@ -53,9 +56,20 @@ public class SingleLayout : LayoutWithElementBounds {
         }
     }
 
-    protected void WithHorizontalSizePolicyInternal(SizePolicy horizontalSizePolicy, double weight) {
-        HorizontalSizePolicy = horizontalSizePolicy;
-        HorizontalStretchWeight = weight;
+    /// <summary>
+    /// Creates a ElementLayout, which usually holds a GuiElement.
+    /// </summary>
+    /// <param name="guiElement"></param>
+    /// <param name="name">Name for this layout, and also a part of the name of the element's bounds if it doesn't have one yet</param>
+    /// <remarks>
+    /// If name is specified and the element's bounds has no name, "bounds-{name}" will be set
+    /// </remarks>
+    public SingleLayout(Func<GuiElement> createGuiElement, string? name = null) : this(createGuiElement(), name) {
+    }
+
+    public override void SetHorizontalSizePolicy(SizePolicy horizontalSizePolicy, double weight) {
+        base.SetHorizontalSizePolicy(horizontalSizePolicy, weight);
+
         // Adjust size constraint not to be inconsistent with the size policy
         switch (HorizontalSizePolicy) {
             case SizePolicy.MinSize:
@@ -69,14 +83,9 @@ public class SingleLayout : LayoutWithElementBounds {
         }
     }
 
-    public SingleLayout WithHorizontalSizePolicy(SizePolicy horizontalSizePolicy, double weight = 1.0) {
-        WithHorizontalSizePolicyInternal(horizontalSizePolicy, weight);
-        return this;
-    }
+    public override void SetVerticalSizePolicy(SizePolicy verticalSizePolicy, double weight) {
+        base.SetVerticalSizePolicy(verticalSizePolicy, weight);
 
-    protected void WithVerticalSizePolicyInternal(SizePolicy verticalSizePolicy, double weight) {
-        VerticalSizePolicy = verticalSizePolicy;
-        VerticalStretchWeight = weight;
         // Adjust size constraint not to be inconsistent with the size policy
         switch (VerticalSizePolicy) {
             case SizePolicy.MinSize:
@@ -88,11 +97,6 @@ public class SingleLayout : LayoutWithElementBounds {
             default:
                 throw new NotImplementedException();
         }
-    }
-
-    public SingleLayout WithVerticalSizePolicy(SizePolicy verticalSizePolicy, double weight = 1.0) {
-        WithVerticalSizePolicyInternal(verticalSizePolicy, weight);
-        return this;
     }
 
     protected void WithMaxWidthInternal(double maxWidth) {

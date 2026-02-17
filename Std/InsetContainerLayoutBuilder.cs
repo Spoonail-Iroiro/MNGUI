@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading;
 using MNGui.GuiElements;
 using MNGui.Layouts;
+using MNGui.Layouts.Extensions;
 using Vintagestory.API.Client;
 
 namespace MNGui.Std;
