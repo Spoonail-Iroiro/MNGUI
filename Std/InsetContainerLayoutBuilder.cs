@@ -155,7 +155,7 @@ public class InsetContainerLayoutBuilder {
         var insetLayout = new WrapperElementLayout(new MNGuiElementInset(capi, BoundsStd.FitToChildren()));
         var clipParentLayout = new WrapperElementLayout(new GuiElementDummy(capi, BoundsStd.FitToChildren().WithFixedPadding(padding)));
 
-        var containerLayout = new ElementLayout(new MNGuiElementLayoutContainer(capi, BoundsStd.FitToChildren().WithFixedPadding(containerPadding), containerInitialLayout), containerName);
+        var containerLayout = new ElementLayout(new MNGuiElementInnerLayoutContainer(capi, BoundsStd.FitToChildren().WithFixedPadding(containerPadding), containerInitialLayout), containerName);
 
         var clipStartLayout = CreateClipStartLayouts();
         var clipEndLayout = isClipEnabled ? new WrapperElementLayout(new MNGuiElementClipEnd(capi)) : new ElementLayout(new GuiElementDummy(capi, ElementBounds.FixedSize(1, 1)));

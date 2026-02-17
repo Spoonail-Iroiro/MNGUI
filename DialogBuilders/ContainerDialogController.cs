@@ -22,7 +22,7 @@ public class ContainerDialogController {
 
         if (isRoot) {
             var container = GetMainContainerElement();
-            container!.EventLayoutApplied = fromThis => { OnBoundsUpdated(); return true; };
+            container!.EventRelayoutRequired = fromThis => { OnBoundsUpdated(); return true; };
         }
     }
 

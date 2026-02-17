@@ -135,3 +135,15 @@ public abstract class LinearLayoutBase : LayoutWithElementBounds, IChildLayoutMi
         return rtn;
     }
 }
+
+public enum HorizontalAlignment {
+    Left,
+    Center,
+    Right
+}
+
+public enum VerticalAlignment {
+    Top,
+    Middle,
+    Bottom
+}

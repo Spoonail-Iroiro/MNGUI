@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using Vintagestory.API.Client;
 using Vintagestory.GameContent;
-using MNGuiTest.MNGui.Layouts.Interfaces;
+using MNGui.Layouts.Interfaces;
 
 namespace MNGui.Layouts;
 

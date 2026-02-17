@@ -61,7 +61,7 @@ public class VerticalLayout : LinearLayoutBase {
 
         // All children set, now calc myself
         // First, just fit to children
-        Element.BeforeCalcBounds();
+        Element!.BeforeCalcBounds();
         Bounds!.CalcWorldBounds();
 
         // TODO: SizePolicy-specific recalc of MinWidth/Height
