@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MNGui.Layouts;
+namespace MNGui.Layouts.Interfaces;
 public interface ILayoutableElement {
     public void Init();
 

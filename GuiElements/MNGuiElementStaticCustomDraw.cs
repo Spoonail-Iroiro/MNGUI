@@ -12,7 +12,7 @@ using DrawHandler = Action<Context, ImageSurface, ElementBounds>;
 public class MNGuiElementStaticCustomDraw : MNGuiElementStaticBase {
     DrawHandler? EventDraw { get; set; }
 
-    public MNGuiElementStaticCustomDraw(ICoreClientAPI capi, ElementBounds bounds, DrawHandler handler = null) : base(capi, bounds) {
+    public MNGuiElementStaticCustomDraw(ICoreClientAPI capi, ElementBounds bounds, DrawHandler? handler = null) : base(capi, bounds) {
         EventDraw = handler;
     }
 

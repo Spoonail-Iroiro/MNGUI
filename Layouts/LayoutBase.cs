@@ -9,6 +9,9 @@ using Vintagestory.API.Client;
 
 namespace MNGui.Layouts;
 
+/// <summary>
+/// Base class for layout node with Measure-Arrange two-path layouting
+/// </summary>
 public abstract class LayoutBase {
 
     public virtual string Name { get; set; } = "lauout-other";
@@ -27,12 +30,6 @@ public abstract class LayoutBase {
     public virtual Size MinSize => minSize;
     public double MinWidth => MinSize.Width;
     public double MinHeight => MinSize.Height;
-
-    // TODO: abstract how getting MinWidth, instead of relying on ElementBounds
-    //public abstract int CalcMinWidth();
-
-    // TODO: abstract how getting MinHeight, instead of relying on ElementBounds
-    //public abstract int CalcMinHeight();
 
     /// <summary>
     /// Init elements, bounds or other data structures. They must be available after calling this.

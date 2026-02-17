@@ -4,25 +4,26 @@ using System.Collections.Generic;
 using System.Linq;
 using Vintagestory.API.Client;
 using MNGui.Util;
+using MNGui.Layouts.Interfaces;
 
 namespace MNGui.Layouts;
 
 // For wrapper-type GuiElement with single child layout
-public class SimpleWrapperLayout : SingleLayout, IChildLayoutMixin {
+public class WrapperElementLayout : ElementLayout, IChildLayoutMixin {
     public List<LayoutBase> ChildLayouts { get; set; } = new();
 
-    public SimpleWrapperLayout(GuiElement guiElement, string? name = null) : base(guiElement, name) {
+    public WrapperElementLayout(GuiElement guiElement, string? name = null) : base(guiElement, name) {
     }
 
-    public SimpleWrapperLayout(Func<GuiElement> createGuiElement, string? name = null) : base(createGuiElement, name) {
+    public WrapperElementLayout(Func<GuiElement> createGuiElement, string? name = null) : base(createGuiElement, name) {
     }
 
-    new public SimpleWrapperLayout WithMaxWidth(double maxWidth) {
+    new public WrapperElementLayout WithMaxWidth(double maxWidth) {
         WithMaxWidthInternal(maxWidth);
         return this;
     }
 
-    new public SimpleWrapperLayout WithMaxHeight(double maxHeight) {
+    new public WrapperElementLayout WithMaxHeight(double maxHeight) {
         WithMaxHeightInternal(maxHeight);
         return this;
     }

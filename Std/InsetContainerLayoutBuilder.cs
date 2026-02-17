@@ -120,9 +120,9 @@ public class InsetContainerLayoutBuilder {
         return this;
     }
 
-    SimpleWrapperLayout CreateClipStartLayouts() {
+    WrapperElementLayout CreateClipStartLayouts() {
         var clipBounds = ElementBounds.FixedSize(minWidth, minHeight);
-        var clipStartLayout = new SimpleWrapperLayout(isClipEnabled ? new MNGuiElementClipStart(capi, clipBounds) : new GuiElementDummy(capi, clipBounds));
+        var clipStartLayout = new WrapperElementLayout(isClipEnabled ? new MNGuiElementClipStart(capi, clipBounds) : new GuiElementDummy(capi, clipBounds));
         if (horizontalSizePolicy != InsetContainerSizePolicy.Fixed) {
             clipBounds.horizontalSizing = ElementSizing.FitToChildren;
         }
@@ -152,13 +152,13 @@ public class InsetContainerLayoutBuilder {
         var padding = 5.0;
 
         var rowLayout = new HorizontalLayout(capi, 3);
-        var insetLayout = new SimpleWrapperLayout(new MNGuiElementInset(capi, BoundsStd.FitToChildren()));
-        var clipParentLayout = new SimpleWrapperLayout(new GuiElementDummy(capi, BoundsStd.FitToChildren().WithFixedPadding(padding)));
+        var insetLayout = new WrapperElementLayout(new MNGuiElementInset(capi, BoundsStd.FitToChildren()));
+        var clipParentLayout = new WrapperElementLayout(new GuiElementDummy(capi, BoundsStd.FitToChildren().WithFixedPadding(padding)));
 
-        var containerLayout = new SingleLayout(new MNGuiElementLayoutContainer(capi, BoundsStd.FitToChildren().WithFixedPadding(containerPadding), containerInitialLayout), containerName);
+        var containerLayout = new ElementLayout(new MNGuiElementLayoutContainer(capi, BoundsStd.FitToChildren().WithFixedPadding(containerPadding), containerInitialLayout), containerName);
 
         var clipStartLayout = CreateClipStartLayouts();
-        var clipEndLayout = isClipEnabled ? new SimpleWrapperLayout(new MNGuiElementClipEnd(capi)) : new SingleLayout(new GuiElementDummy(capi, ElementBounds.FixedSize(1, 1)));
+        var clipEndLayout = isClipEnabled ? new WrapperElementLayout(new MNGuiElementClipEnd(capi)) : new ElementLayout(new GuiElementDummy(capi, ElementBounds.FixedSize(1, 1)));
 
         rowLayout
             .Add(
@@ -181,7 +181,7 @@ public class InsetContainerLayoutBuilder {
             // TODO: proper scrollbar layouting
             var scrollbarHeight = (minHeight > 10.0 ? minHeight : 10) + padding * 2;
             var scrollbar = new MNGuiElementVerticalScrollbar(capi, ElementBounds.FixedSize(20, scrollbarHeight));
-            var scrollBarLayout = new SingleLayout(scrollbar).WithVerticalSizePolicy(SizePolicy.Stretch);
+            var scrollBarLayout = new ElementLayout(scrollbar).WithVerticalSizePolicy(SizePolicy.Stretch);
             scrollbar.SetViewAndContentBounds(clipStartLayout.Bounds, containerLayout.Bounds);
             rowLayout.Add(scrollBarLayout);
         }

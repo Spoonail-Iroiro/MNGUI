@@ -9,10 +9,11 @@ using MNGui.Extensions;
 using MNGui.GuiElements;
 using MNGui.GuiElements.Layout;
 using MNGui.Util;
+using MNGui.Layouts.Interfaces;
 
 namespace MNGui.Layouts;
 
-public abstract class LenearLayoutBase : LayoutWithElementBounds, IChildLayoutMixin {
+public abstract class LinearLayoutBase : LayoutWithElementBounds, IChildLayoutMixin {
     public HorizontalAlignment HorizontalAlignment { get; private set; }
     public VerticalAlignment VerticalAlignment { get; private set; }
 
@@ -33,7 +34,7 @@ public abstract class LenearLayoutBase : LayoutWithElementBounds, IChildLayoutMi
 
     public override ElementBounds? Bounds => (Element?.Bounds ?? bounds);
 
-    public LenearLayoutBase(ICoreClientAPI capi, int gap, HorizontalAlignment hAlign, VerticalAlignment vAlign) {
+    public LinearLayoutBase(ICoreClientAPI capi, int gap, HorizontalAlignment hAlign, VerticalAlignment vAlign) {
         this.capi = capi;
         Gap = gap;
 

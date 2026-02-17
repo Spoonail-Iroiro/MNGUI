@@ -9,7 +9,7 @@ using MNGui.Layouts.Extensions;
 namespace MNGui.Layouts;
 
 
-public class VerticalLayout : LenearLayoutBase {
+public class VerticalLayout : LinearLayoutBase {
     // Name only for display (like debugging bounds)
     public override string Name { get; set; } = "layout-vertical";
 

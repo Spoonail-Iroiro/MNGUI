@@ -3,6 +3,7 @@ using MNGui.Extensions;
 using MNGui.GuiElements.Layout;
 using MNGui.Layouts;
 using MNGui.Layouts.Extensions;
+using MNGuiTest.MNGui.Layouts.Interfaces;
 using System.Diagnostics.CodeAnalysis;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;

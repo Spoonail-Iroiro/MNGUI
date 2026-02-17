@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using Vintagestory.API.Client;
 using Vintagestory.GameContent;
+using MNGuiTest.MNGui.Layouts.Interfaces;
 
 namespace MNGui.Layouts;
 
@@ -19,7 +20,7 @@ public enum ElementSizeConstraint {
 }
 
 // Layout with single element.
-public class SingleLayout : LayoutWithElementBounds {
+public class ElementLayout : LayoutWithElementBounds {
     // Bounds to calc MinSize
     protected ElementBounds? InitialBounds { get; set; } = null;
 
@@ -44,7 +45,7 @@ public class SingleLayout : LayoutWithElementBounds {
     /// <remarks>
     /// If name is specified and the element's bounds has no name, "bounds-{name}" will be set
     /// </remarks>
-    public SingleLayout(GuiElement guiElement, string? name = null) {
+    public ElementLayout(GuiElement guiElement, string? name = null) {
         Element = guiElement;
         if (name != null) {
             Name = name;
@@ -64,7 +65,7 @@ public class SingleLayout : LayoutWithElementBounds {
     /// <remarks>
     /// If name is specified and the element's bounds has no name, "bounds-{name}" will be set
     /// </remarks>
-    public SingleLayout(Func<GuiElement> createGuiElement, string? name = null) : this(createGuiElement(), name) {
+    public ElementLayout(Func<GuiElement> createGuiElement, string? name = null) : this(createGuiElement(), name) {
     }
 
     public override void SetHorizontalSizePolicy(SizePolicy horizontalSizePolicy, double weight) {
@@ -106,7 +107,7 @@ public class SingleLayout : LayoutWithElementBounds {
         HorizontalSizePolicy = SizePolicy.MinSize;
     }
 
-    public SingleLayout WithMaxWidth(double maxWidth) {
+    public ElementLayout WithMaxWidth(double maxWidth) {
         WithMaxWidthInternal(maxWidth);
         return this;
     }
@@ -118,7 +119,7 @@ public class SingleLayout : LayoutWithElementBounds {
         VerticalSizePolicy = SizePolicy.MinSize;
     }
 
-    public SingleLayout WithMaxHeight(double maxHeight) {
+    public ElementLayout WithMaxHeight(double maxHeight) {
         WithMaxHeightInternal(maxHeight);
         return this;
     }

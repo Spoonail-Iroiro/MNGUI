@@ -1,7 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using MNGui.Layouts;
+using System.Collections.Generic;
 using System.Linq;
 
-namespace MNGui.Layouts;
+namespace MNGui.Layouts.Interfaces;
 public interface IChildLayoutMixin {
     List<LayoutBase> ChildLayouts { get; }
 

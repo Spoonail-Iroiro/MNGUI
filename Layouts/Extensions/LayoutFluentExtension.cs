@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MNGui.Layouts.Interfaces;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -16,7 +17,7 @@ public static class LayoutFluentExtension {
         return layout;
     }
 
-    public static T WithAlignment<T>(this T layout, HorizontalAlignment? horizontalAlignment = null, VerticalAlignment? verticalAlignment = null) where T : LenearLayoutBase {
+    public static T WithAlignment<T>(this T layout, HorizontalAlignment? horizontalAlignment = null, VerticalAlignment? verticalAlignment = null) where T : LinearLayoutBase {
         layout.SetAlignment(horizontalAlignment, verticalAlignment);
         return layout;
     }
@@ -38,7 +39,7 @@ public static class LayoutFluentExtension {
             SizePolicy? vSizePolicy = null,
             double vStretchWeight = 1.0
         ) where T : IChildLayoutMixin {
-        var elementAsLayout = new SingleLayout(element, name);
+        var elementAsLayout = new ElementLayout(element, name);
         if (hSizePolicy != null) {
             elementAsLayout.SetHorizontalSizePolicy(hSizePolicy.Value, hStretchWeight);
         }

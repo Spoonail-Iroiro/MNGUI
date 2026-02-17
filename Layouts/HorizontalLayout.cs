@@ -14,7 +14,7 @@ using Vintagestory.GameContent;
 
 namespace MNGui.Layouts;
 
-public class HorizontalLayout : LenearLayoutBase {
+public class HorizontalLayout : LinearLayoutBase {
     public override string Name { get; set; } = "layout-horizontal";
 
     public HorizontalLayout(ICoreClientAPI capi, int gap = 0, HorizontalAlignment hAlign = HorizontalAlignment.Left, VerticalAlignment vAlign = VerticalAlignment.Top) : base(capi, gap, hAlign, vAlign) {
