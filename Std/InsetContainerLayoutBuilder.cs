@@ -37,6 +37,8 @@ public class InsetContainerLayoutBuilder {
 
     bool isClipEnabled = true;
 
+    bool isInsetEnabled = true;
+
     double containerPadding = 2.0;
 
     LayoutWithElementBounds? containerInitialLayout;
@@ -110,6 +112,11 @@ public class InsetContainerLayoutBuilder {
         return this;
     }
 
+    public InsetContainerLayoutBuilder WithInset(bool enabled) {
+        isInsetEnabled = enabled;
+        return this;
+    }
+
     /// <summary>
     /// Set containe's padding. Default: 2.0. Mainly for preventing elements drawing outside of their bounds from being clippled slightly
     /// </summary>
@@ -152,7 +159,9 @@ public class InsetContainerLayoutBuilder {
         var padding = 5.0;
 
         var rowLayout = new HorizontalLayout(capi, 3);
-        var insetLayout = new WrapperElementLayout(new MNGuiElementInset(capi, BoundsStd.FitToChildren()));
+        var insetLayout = isInsetEnabled ?
+            new WrapperElementLayout(new MNGuiElementInset(capi, BoundsStd.FitToChildren())) :
+            new WrapperElementLayout(new GuiElementDummy(capi, BoundsStd.FitToChildren()));
         var clipParentLayout = new WrapperElementLayout(new GuiElementDummy(capi, BoundsStd.FitToChildren().WithFixedPadding(padding)));
 
         var containerLayout = new ElementLayout(new MNGuiElementInnerLayoutContainer(capi, BoundsStd.FitToChildren().WithFixedPadding(containerPadding), containerInitialLayout), containerName);
