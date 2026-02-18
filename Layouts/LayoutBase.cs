@@ -31,6 +31,9 @@ public abstract class LayoutBase {
     public double MinWidth => MinSize.Width;
     public double MinHeight => MinSize.Height;
 
+    public SizeConstraint MinWidthConstraint { get; set; } = new();
+    public SizeConstraint MinHeightConstraint { get; set; } = new();
+
     /// <summary>
     /// Init elements, bounds or other data structures. They must be available after calling this.
     /// </summary>
@@ -113,3 +116,10 @@ public record class GuiElementInfo(
     string? Name
 );
 
+public record class SizeConstraint(
+        double Min = 0.0,
+        double Max = double.MaxValue
+    ) {
+    public double Min { get; set; } = Min;
+    public double Max { get; set; } = Max;
+}
