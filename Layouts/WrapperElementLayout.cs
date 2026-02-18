@@ -18,16 +18,6 @@ public class WrapperElementLayout : ElementLayout, IChildLayoutMixin {
     public WrapperElementLayout(Func<GuiElement> createGuiElement, string? name = null) : base(createGuiElement, name) {
     }
 
-    new public WrapperElementLayout WithMaxWidth(double maxWidth) {
-        WithMaxWidthInternal(maxWidth);
-        return this;
-    }
-
-    new public WrapperElementLayout WithMaxHeight(double maxHeight) {
-        WithMaxHeightInternal(maxHeight);
-        return this;
-    }
-
     public override void Init() {
         base.Init();
 

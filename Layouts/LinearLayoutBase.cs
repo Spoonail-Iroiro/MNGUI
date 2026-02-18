@@ -14,8 +14,8 @@ using MNGui.Layouts.Interfaces;
 namespace MNGui.Layouts;
 
 public abstract class LinearLayoutBase : LayoutWithElementBounds, IChildLayoutMixin {
-    public HorizontalAlignment HorizontalAlignment { get; private set; }
-    public VerticalAlignment VerticalAlignment { get; private set; }
+    public AlignmentHorizontal HorizontalAlignment { get; private set; }
+    public AlignmentVertical VerticalAlignment { get; private set; }
 
     protected ICoreClientAPI capi;
 
@@ -34,7 +34,7 @@ public abstract class LinearLayoutBase : LayoutWithElementBounds, IChildLayoutMi
 
     public override ElementBounds? Bounds => (Element?.Bounds ?? bounds);
 
-    public LinearLayoutBase(ICoreClientAPI capi, int gap, HorizontalAlignment hAlign, VerticalAlignment vAlign) {
+    public LinearLayoutBase(ICoreClientAPI capi, int gap, AlignmentHorizontal hAlign, AlignmentVertical vAlign) {
         this.capi = capi;
         Gap = gap;
 
@@ -47,13 +47,13 @@ public abstract class LinearLayoutBase : LayoutWithElementBounds, IChildLayoutMi
         VerticalAlignment = vAlign;
     }
 
-    public virtual void SetAlignment(HorizontalAlignment? horizontalAlignment, VerticalAlignment? verticalAlignment) {
-        if (horizontalAlignment != null) {
-            HorizontalAlignment = horizontalAlignment.Value;
+    public virtual void SetAlignment(AlignmentHorizontal? hAlign, AlignmentVertical? vAlign) {
+        if (hAlign != null) {
+            HorizontalAlignment = hAlign.Value;
         }
 
-        if (verticalAlignment != null) {
-            VerticalAlignment = verticalAlignment.Value;
+        if (vAlign != null) {
+            VerticalAlignment = vAlign.Value;
         }
     }
 
@@ -136,13 +136,14 @@ public abstract class LinearLayoutBase : LayoutWithElementBounds, IChildLayoutMi
     }
 }
 
-public enum HorizontalAlignment {
+// This can be HorizontalAlignment but it's so annoying appearing in Intellisense earlier than HorizontalLayout!
+public enum AlignmentHorizontal {
     Left,
     Center,
     Right
 }
 
-public enum VerticalAlignment {
+public enum AlignmentVertical {
     Top,
     Middle,
     Bottom

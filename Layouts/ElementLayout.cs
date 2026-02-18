@@ -28,8 +28,6 @@ public class ElementLayout : LayoutWithElementBounds {
 
     public ElementSizeConstraint HorizontalElementSizeConstraint { get; protected set; } = ElementSizeConstraint.RawBounds;
     public ElementSizeConstraint VerticalElementSizeConstraint { get; protected set; } = ElementSizeConstraint.RawBounds;
-    public double MaxWidth { get; set; } = double.MaxValue;
-    public double MaxHeight { get; set; } = double.MaxValue;
 
     public override ElementBounds Bounds => Element.Bounds;
 
@@ -73,14 +71,12 @@ public class ElementLayout : LayoutWithElementBounds {
 
         // Adjust size constraint not to be inconsistent with the size policy
         switch (HorizontalSizePolicy) {
-            case SizePolicy.MinSize:
-                HorizontalElementSizeConstraint = ElementSizeConstraint.RawBounds;
-                break;
+            // Allow MinSize with FollowArrange - measure MinSize will be clamped by the constraint while RawBounds ignore it
             case SizePolicy.Stretch:
                 HorizontalElementSizeConstraint = ElementSizeConstraint.FollowArrange;
                 break;
             default:
-                throw new NotImplementedException();
+                break;
         }
     }
 
@@ -89,39 +85,38 @@ public class ElementLayout : LayoutWithElementBounds {
 
         // Adjust size constraint not to be inconsistent with the size policy
         switch (VerticalSizePolicy) {
-            case SizePolicy.MinSize:
-                VerticalElementSizeConstraint = ElementSizeConstraint.RawBounds;
-                break;
+            // Allow MinSize with FollowArrange - measure MinSize will be clamped by the constraint while RawBounds ignore it
             case SizePolicy.Stretch:
                 VerticalElementSizeConstraint = ElementSizeConstraint.FollowArrange;
                 break;
             default:
-                throw new NotImplementedException();
+                break;
         }
     }
 
-    protected void WithMaxWidthInternal(double maxWidth) {
-        HorizontalElementSizeConstraint = ElementSizeConstraint.LimitToMax;
-        MaxWidth = maxWidth;
-        // Adjust size policy not to be inconsistent with the size constraint
+    public void SetFitToChildrenWithWidthRange(double maxWidth) {
+        SetMinWidthConstraint(max: maxWidth);
         HorizontalSizePolicy = SizePolicy.MinSize;
     }
 
-    public ElementLayout WithMaxWidth(double maxWidth) {
-        WithMaxWidthInternal(maxWidth);
-        return this;
-    }
 
-    protected void WithMaxHeightInternal(double maxHeight) {
-        VerticalElementSizeConstraint = ElementSizeConstraint.LimitToMax;
-        MaxHeight = maxHeight;
-        // Adjust size policy not to be inconsistent with the size constraint
+    public void SetFitToChildrenWithHeightRange(double maxHeight) {
+        SetMinHeightConstraint(max: maxHeight);
         VerticalSizePolicy = SizePolicy.MinSize;
     }
 
-    public ElementLayout WithMaxHeight(double maxHeight) {
-        WithMaxHeightInternal(maxHeight);
-        return this;
+    public override void SetMinWidthConstraint(double? min = null, double? max = null) {
+        base.SetMinWidthConstraint(min, max);
+        if (min != null || max != null) {
+            HorizontalElementSizeConstraint = ElementSizeConstraint.FollowArrange;
+        }
+    }
+
+    public override void SetMinHeightConstraint(double? min = null, double? max = null) {
+        base.SetMinHeightConstraint(min, max);
+        if (min != null || max != null) {
+            VerticalElementSizeConstraint = ElementSizeConstraint.FollowArrange;
+        }
     }
 
     public override void Init() {
@@ -150,20 +145,6 @@ public class ElementLayout : LayoutWithElementBounds {
         Element.BeforeCalcBounds();
         Element.Bounds.CalcWorldBounds();
 
-        if (HorizontalElementSizeConstraint == ElementSizeConstraint.LimitToMax) {
-            if (Element.Bounds.UnscaledOuterWidth() > MaxWidth) {
-                Element.Bounds.WithUnscaledOuterWidth(MaxWidth);
-                Element.Bounds.CalcWorldBounds();
-            }
-        }
-
-        if (VerticalElementSizeConstraint == ElementSizeConstraint.LimitToMax) {
-            if (Element.Bounds.UnscaledOuterHeight() > MaxHeight) {
-                Element.Bounds.WithUnscaledOuterHeight(MaxHeight);
-                Element.Bounds.CalcWorldBounds();
-            }
-        }
-
         switch (HorizontalSizePolicy) {
             case SizePolicy.MinSize:
                 break;
@@ -185,6 +166,15 @@ public class ElementLayout : LayoutWithElementBounds {
             default:
                 throw new NotImplementedException();
 
+        }
+
+        // Ignores MinSize constraint as whell when RawBounds is specified
+        if (HorizontalElementSizeConstraint != ElementSizeConstraint.RawBounds) {
+            ClampMinWidthToConstraint();
+        }
+
+        if (VerticalElementSizeConstraint != ElementSizeConstraint.RawBounds) {
+            ClampMinHeightToConstraint();
         }
     }
 

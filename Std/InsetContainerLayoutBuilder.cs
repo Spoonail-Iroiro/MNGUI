@@ -137,10 +137,10 @@ public class InsetContainerLayoutBuilder {
             clipBounds.verticalSizing = ElementSizing.FitToChildren;
         }
         if (horizontalSizePolicy == InsetContainerSizePolicy.FitToChildrenRange) {
-            clipStartLayout.WithMaxWidth(maxWidth);
+            clipStartLayout.WithFitToChildrenWithWidthRange(maxWidth);
         }
         if (verticalSizePolicy == InsetContainerSizePolicy.FitToChildrenRange) {
-            clipStartLayout.WithMaxHeight(maxHeight);
+            clipStartLayout.WithFitToChildrenWithHeightRange(maxHeight);
         }
 
         return clipStartLayout;

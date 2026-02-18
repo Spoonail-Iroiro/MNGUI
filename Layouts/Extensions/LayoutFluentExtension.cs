@@ -17,8 +17,8 @@ public static class LayoutFluentExtension {
         return layout;
     }
 
-    public static T WithAlignment<T>(this T layout, HorizontalAlignment? horizontalAlignment = null, VerticalAlignment? verticalAlignment = null) where T : LinearLayoutBase {
-        layout.SetAlignment(horizontalAlignment, verticalAlignment);
+    public static T WithAlignment<T>(this T layout, AlignmentHorizontal? hAlign = null, AlignmentVertical? vAlign = null) where T : LinearLayoutBase {
+        layout.SetAlignment(hAlign, vAlign);
         return layout;
     }
 
@@ -30,33 +30,34 @@ public static class LayoutFluentExtension {
     /// <param name="width"></param>
     /// <param name="height"></param>
     /// <returns></returns>
-    public static T WithGuaranteedMinSize<T>(this T layout, double? width, double? height) where T : LayoutBase {
+    public static T WithGuaranteedMinSize<T>(this T layout, double? width = null, double? height = null) where T : LayoutBase {
         if (width != null) {
-            layout.MinWidthConstraint.Min = width.Value;
+            layout.SetMinWidthConstraint(min: width);
         }
         if (height != null) {
-            layout.MinHeightConstraint.Min = height.Value;
+            layout.SetMinHeightConstraint(min: height);
         }
         return layout;
     }
 
     /// <summary>
     /// Sets clamped max size of the content in the layout, by setting upper limit of measured MinSize
-    /// Warning: the layout's final size may be larger than specified - this only affects MinSize calc during layout
-    ///   Also setting this might cause elements overlapping, since the layout will notify a MinSize smaller than what the content actually needs
-    ///   This method is useful only for a few layout/element that can be smaller than its content, such as clip element
+    /// Warning: the layout's final size may be larger than specified - this only affects MinSize calc during layout.
+    ///   Also setting this might cause elements overlapping, since the layout will notify its parent a MinSize smaller than 
+    ///   what the content actually needs.
+    ///   This method is useful only for a few layout/element that can be smaller than its content, such as clip element.
     /// </summary>
     /// <typeparam name="T"></typeparam>
     /// <param name="layout"></param>
     /// <param name="width"></param>
     /// <param name="height"></param>
     /// <returns></returns>
-    public static T WithContentClampedMaxSize<T>(this T layout, double? width, double? height) where T : LayoutBase {
+    public static T WithContentClampedMaxSize<T>(this T layout, double? width = null, double? height = null) where T : LayoutBase {
         if (width != null) {
-            layout.MinWidthConstraint.Max = width.Value;
+            layout.SetMinWidthConstraint(max: width);
         }
         if (height != null) {
-            layout.MinHeightConstraint.Max = height.Value;
+            layout.SetMinHeightConstraint(max: height);
         }
         return layout;
     }
@@ -83,6 +84,15 @@ public static class LayoutFluentExtension {
         return layout;
     }
 
+    public static T WithFitToChildrenWithWidthRange<T>(this T layout, double maxWidth) where T : ElementLayout {
+        layout.SetFitToChildrenWithWidthRange(maxWidth);
+        return layout;
+    }
+
+    public static T WithFitToChildrenWithHeightRange<T>(this T layout, double maxHeight) where T : ElementLayout {
+        layout.SetFitToChildrenWithHeightRange(maxHeight);
+        return layout;
+    }
 
     public static T Add<T>(
             this T layoutWithChildren,
