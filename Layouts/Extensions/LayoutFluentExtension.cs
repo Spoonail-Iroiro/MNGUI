@@ -71,7 +71,7 @@ public static class LayoutFluentExtension {
     /// <param name="width"></param>
     /// <param name="height"></param>
     /// <returns></returns>
-    public static T WithFixedSize<T>(this T layout, double? width, double? height) where T : LinearLayoutBase {
+    public static T WithFixedSize<T>(this T layout, double? width = null, double? height = null) where T : LinearLayoutBase {
         // Sets the value to both Min and Max constraint of MinSize
         layout.WithGuaranteedMinSize(width, height);
         layout.WithContentClampedMaxSize(width, height);
