@@ -31,6 +31,9 @@ public abstract class LayoutBase {
     public double MinWidth => MinSize.Width;
     public double MinHeight => MinSize.Height;
 
+    public SizeConstraint MinWidthConstraint { get; protected set; } = new();
+    public SizeConstraint MinHeightConstraint { get; protected set; } = new();
+
     /// <summary>
     /// Init elements, bounds or other data structures. They must be available after calling this.
     /// </summary>
@@ -59,6 +62,36 @@ public abstract class LayoutBase {
     public virtual void SetVerticalSizePolicy(SizePolicy verticalSizePolicy, double weight) {
         VerticalSizePolicy = verticalSizePolicy;
         VerticalStretchWeight = weight;
+    }
+
+    /// <summary>
+    /// Sets MinWidthConstraint other than the default
+    /// </summary>
+    /// <param name="min"></param>
+    /// <param name="max"></param>
+    public virtual void SetMinWidthConstraint(double? min = null, double? max = null) {
+        if (min != null) {
+            MinWidthConstraint.Min = min.Value;
+        }
+
+        if (max != null) {
+            MinWidthConstraint.Max = max.Value;
+        }
+    }
+
+    /// <summary>
+    /// Sets MinWidthConstraint other than the default
+    /// </summary>
+    /// <param name="min"></param>
+    /// <param name="max"></param>
+    public virtual void SetMinHeightConstraint(double? min = null, double? max = null) {
+        if (min != null) {
+            MinHeightConstraint.Min = min.Value;
+        }
+
+        if (max != null) {
+            MinHeightConstraint.Max = max.Value;
+        }
     }
 
     public SizePolicy GetAdjustedHorizontalSizePolicy(bool hasFillSibling) {
@@ -113,3 +146,10 @@ public record class GuiElementInfo(
     string? Name
 );
 
+public record class SizeConstraint(
+        double Min = 0.0,
+        double Max = double.MaxValue
+    ) {
+    public double Min { get; set; } = Min;
+    public double Max { get; set; } = Max;
+}

@@ -13,7 +13,7 @@ public class VerticalLayout : LinearLayoutBase {
     // Name only for display (like debugging bounds)
     public override string Name { get; set; } = "layout-vertical";
 
-    public VerticalLayout(ICoreClientAPI capi, int gap = 0, HorizontalAlignment hAlign = HorizontalAlignment.Left, VerticalAlignment vAlign = VerticalAlignment.Top) : base(capi, gap, hAlign, vAlign) {
+    public VerticalLayout(ICoreClientAPI capi, int gap = 0, AlignmentHorizontal hAlign = AlignmentHorizontal.Left, AlignmentVertical vAlign = AlignmentVertical.Top) : base(capi, gap, hAlign, vAlign) {
     }
 
     public VerticalLayout AddVerticalSpace(double length) {
@@ -64,12 +64,12 @@ public class VerticalLayout : LinearLayoutBase {
         Element!.BeforeCalcBounds();
         Bounds!.CalcWorldBounds();
 
-        // TODO: SizePolicy-specific recalc of MinWidth/Height
+        ClampMinWidthToConstraint();
+        ClampMinHeightToConstraint();
     }
 
     public override void Arrange(Vec2 fixedPos, Size availableSize) {
         if (Bounds == null) throw new InvalidOperationException($"Call Measure before Arrange!");
-        var innerMinSize = new Size(Bounds.UnscaledInnerWidth(), Bounds.UnscaledInnerHeight()); // Needs when align
         // Apply arrange myself
         Bounds.WithFixedPosition(fixedPos.X, fixedPos.Y);
         Bounds.WithUnscaledOuterWidth(availableSize.Width);
@@ -99,25 +99,26 @@ public class VerticalLayout : LinearLayoutBase {
 
         var availableWidth = Bounds.UnscaledInnerWidth();
         var availableHeight = Bounds.UnscaledInnerHeight();
-        availableHeight -= Gap * (children.Count - 1);
+        availableHeight = Math.Max(availableHeight - Gap * (children.Count - 1), 0);
 
         var distributedHeights = CalcDistributedLength(availableHeight, minHeights, actualSizePoliciesVertical, actualStretchWeightVertical);
         var widthes = Enumerable.Zip(actualSizePoliciesHorizontal, children).Select(pair => pair.First == SizePolicy.MinSize ? pair.Second.MinWidth : availableWidth);
 
         var needVerticalAlignment = !actualSizePoliciesVertical.Any(IsStretchingSizePolicy);
         var startY = 0.0;
-        if (needVerticalAlignment) {
+        var innerMinHeight = distributedHeights.Sum() + Gap * (children.Count - 1);
+        if (needVerticalAlignment && innerMinHeight < availableHeight) {
             startY = VerticalAlignment switch {
-                VerticalAlignment.Middle => (availableHeight - innerMinSize.Height) / 2.0,
-                VerticalAlignment.Bottom => (availableHeight - innerMinSize.Height),
+                AlignmentVertical.Middle => (availableHeight - innerMinHeight) / 2.0,
+                AlignmentVertical.Bottom => (availableHeight - innerMinHeight),
                 _ => 0.0
             };
         }
 
         var fixedXs = widthes.Select(wi => {
             var x = HorizontalAlignment switch {
-                HorizontalAlignment.Center => (availableWidth - wi) / 2.0,
-                HorizontalAlignment.Right => (availableWidth - wi),
+                AlignmentHorizontal.Center => (availableWidth - wi) / 2.0,
+                AlignmentHorizontal.Right => (availableWidth - wi),
                 _ => 0.0
             };
             return x;

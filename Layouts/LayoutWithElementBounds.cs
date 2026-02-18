@@ -28,4 +28,32 @@ public abstract class LayoutWithElementBounds : LayoutBase {
     public void ArrangeWithMinSize() {
         Arrange(new(0.0, 0.0), MinSize);
     }
+
+    /// <summary>
+    /// Utility method for clamp Bounds to MinSize constraint
+    /// </summary>
+    protected void ClampMinWidthToConstraint() {
+        if (Bounds == null) return;
+
+        if (MinWidth < MinWidthConstraint.Min) {
+            Bounds.WithUnscaledOuterWidth(MinWidthConstraint.Min);
+        }
+        if (MinWidthConstraint.Max < MinWidth) {
+            Bounds.WithUnscaledOuterWidth(MinWidthConstraint.Max);
+        }
+    }
+
+    /// <summary>
+    /// Utility method for clamp Bounds to MinSize constraint
+    /// </summary>
+    protected void ClampMinHeightToConstraint() {
+        if (Bounds == null) return;
+
+        if (MinHeight < MinHeightConstraint.Min) {
+            Bounds.WithUnscaledOuterHeight(MinHeightConstraint.Min);
+        }
+        if (MinHeightConstraint.Max < MinHeight) {
+            Bounds.WithUnscaledOuterHeight(MinHeightConstraint.Max);
+        }
+    }
 }

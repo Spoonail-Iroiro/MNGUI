@@ -17,7 +17,7 @@ namespace MNGui.Layouts;
 public class HorizontalLayout : LinearLayoutBase {
     public override string Name { get; set; } = "layout-horizontal";
 
-    public HorizontalLayout(ICoreClientAPI capi, int gap = 0, HorizontalAlignment hAlign = HorizontalAlignment.Left, VerticalAlignment vAlign = VerticalAlignment.Top) : base(capi, gap, hAlign, vAlign) {
+    public HorizontalLayout(ICoreClientAPI capi, int gap = 0, AlignmentHorizontal hAlign = AlignmentHorizontal.Left, AlignmentVertical vAlign = AlignmentVertical.Top) : base(capi, gap, hAlign, vAlign) {
     }
 
     public HorizontalLayout AddHorizontalSpace(double length) {
@@ -73,12 +73,12 @@ public class HorizontalLayout : LinearLayoutBase {
         Element!.BeforeCalcBounds();
         Bounds!.CalcWorldBounds();
 
-        // TODO: SizePolicy-specific recalc of MinWidth/Height
+        ClampMinWidthToConstraint();
+        ClampMinHeightToConstraint();
     }
 
     public override void Arrange(Vec2 fixedPos, Size availableSize) {
         if (Bounds == null) throw new InvalidOperationException($"Call Measure before Arrange!");
-        var innerMinSize = new Size(Bounds.UnscaledInnerWidth(), Bounds.UnscaledInnerHeight()); // Needs when align
         // Apply arrange myself
         Bounds.WithFixedPosition(fixedPos.X, fixedPos.Y);
         Bounds.WithUnscaledOuterWidth(availableSize.Width);
@@ -112,17 +112,18 @@ public class HorizontalLayout : LinearLayoutBase {
 
         var availableWidth = Bounds.UnscaledInnerWidth();
         var availableHeight = Bounds.UnscaledInnerHeight();
-        availableWidth -= Gap * (children.Count - 1);
+        availableWidth = Math.Max(availableWidth - Gap * (children.Count - 1), 0);
 
         var distributedWidthes = CalcDistributedLength(availableWidth, minWidthes, actualSizePoliciesHorizontal, actualStretchWeightHorizontal);
         var heights = Enumerable.Zip(actualSizePoliciesVertical, children).Select(pair => pair.First == SizePolicy.MinSize ? pair.Second.MinHeight : availableHeight);
 
         var needHorizontalAlignment = !actualSizePoliciesHorizontal.Any(IsStretchingSizePolicy); // If some elemnt is fill, remaining space will be consumed, so no need to align
         var startX = 0.0;
-        if (needHorizontalAlignment) {
+        var innerMinWidth = distributedWidthes.Sum() + Gap * (children.Count - 1);
+        if (needHorizontalAlignment && innerMinWidth < availableWidth) {
             startX = HorizontalAlignment switch {
-                HorizontalAlignment.Center => (availableWidth - innerMinSize.Width) / 2.0,
-                HorizontalAlignment.Right => availableWidth - innerMinSize.Width,
+                AlignmentHorizontal.Center => (availableWidth - innerMinWidth) / 2.0,
+                AlignmentHorizontal.Right => availableWidth - innerMinWidth,
                 _ => 0.0
             };
         }
@@ -130,8 +131,8 @@ public class HorizontalLayout : LinearLayoutBase {
         var fixedXs = CalcAlignedPositions(startX, distributedWidthes, Gap);
         var fixedYs = heights.Select(hei => {
             var y = VerticalAlignment switch {
-                VerticalAlignment.Middle => (availableHeight - hei) / 2.0,
-                VerticalAlignment.Bottom => availableHeight - hei,
+                AlignmentVertical.Middle => (availableHeight - hei) / 2.0,
+                AlignmentVertical.Bottom => availableHeight - hei,
                 _ => 0.0
             };
             return y;
