@@ -7,8 +7,8 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace MNGui.DialogBuilders {
     public class StandardDialogBuilder {
-        public static readonly string MainContainerName = "container-main";
-        public static readonly string ScrollbarName = "scrollbar-main";
+        public static readonly string MainContainerName = "container-standarddialogbuilder-main";
+        public static readonly string ScrollbarName = "scrollbar-standarddialogbuilder-main";
 
         double fixedHeight;
 
