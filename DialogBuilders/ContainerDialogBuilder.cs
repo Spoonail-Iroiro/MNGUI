@@ -7,8 +7,8 @@ using MNGui.Extensions;
 
 namespace MNGui.DialogBuilders;
 public class ContainerDialogBuilder {
-    public static readonly string MainContainerName = "container-main";
-    public static readonly string ScrollbarName = "scrollbar-main";
+    public static readonly string MainContainerName = "container-containerdialogbuilder-main";
+    public static readonly string ScrollbarName = "scrollbar-containerdialogbuilder-main";
 
     public bool IsStandardCloseEnabled { get; private set; } = true;
 
