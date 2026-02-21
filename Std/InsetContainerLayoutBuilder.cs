@@ -40,6 +40,7 @@ public class InsetContainerLayoutBuilder {
     bool isInsetEnabled = true;
 
     double containerPadding = 2.0;
+    double clipParentPadding = 5.0;
 
     LayoutWithElementBounds? containerInitialLayout;
 
@@ -112,8 +113,12 @@ public class InsetContainerLayoutBuilder {
         return this;
     }
 
-    public InsetContainerLayoutBuilder WithInset(bool enabled) {
+    public InsetContainerLayoutBuilder WithInset(bool enabled, double? insetPadding = null) {
         isInsetEnabled = enabled;
+
+        if (insetPadding != null) {
+            clipParentPadding = insetPadding.Value;
+        }
         return this;
     }
 
@@ -156,13 +161,12 @@ public class InsetContainerLayoutBuilder {
 
     public LayoutWithElementBounds Build() {
         var elementStd = new ElementStd(capi);
-        var padding = 5.0;
 
         var rowLayout = new HorizontalLayout(capi, 3);
         var insetLayout = isInsetEnabled ?
             new WrapperElementLayout(new MNGuiElementInset(capi, BoundsStd.FitToChildren())) :
             new WrapperElementLayout(new GuiElementDummy(capi, BoundsStd.FitToChildren()));
-        var clipParentLayout = new WrapperElementLayout(new GuiElementDummy(capi, BoundsStd.FitToChildren().WithFixedPadding(padding)));
+        var clipParentLayout = new WrapperElementLayout(new GuiElementDummy(capi, BoundsStd.FitToChildren().WithFixedPadding(clipParentPadding)));
 
         var containerLayout = new ElementLayout(new MNGuiElementInnerLayoutContainer(capi, BoundsStd.FitToChildren().WithFixedPadding(containerPadding), containerInitialLayout), containerName);
 
@@ -188,7 +192,7 @@ public class InsetContainerLayoutBuilder {
 
         if (hasScrollbar) {
             // TODO: proper scrollbar layouting
-            var scrollbarHeight = (minHeight > 10.0 ? minHeight : 10) + padding * 2;
+            var scrollbarHeight = (minHeight > 10.0 ? minHeight : 10) + clipParentPadding * 2;
             var scrollbar = new MNGuiElementVerticalScrollbar(capi, ElementBounds.FixedSize(20, scrollbarHeight));
             var scrollBarLayout = new ElementLayout(scrollbar).WithVerticalSizePolicy(SizePolicy.Stretch);
             scrollbar.SetViewAndContentBounds(clipStartLayout.Bounds, containerLayout.Bounds);
