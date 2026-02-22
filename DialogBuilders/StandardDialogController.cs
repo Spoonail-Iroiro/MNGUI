@@ -1,8 +1,10 @@
-﻿using MNGui.Extensions;
+﻿using MNGui.Exceptions;
+using MNGui.Extensions;
 using MNGui.GuiElements;
 using MNGui.Layouts;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using Vintagestory.API.Client;
 using Vintagestory.API.Util;
@@ -35,7 +37,14 @@ public class StandardDialogController {
         return Composer.GetElement<MNGuiElementVerticalScrollbar>(StandardDialogBuilder.ScrollbarName);
     }
 
-    public T? GetElement<T>(string name) where T : class {
+    public T GetElement<T>(string name) where T : class {
+        var elem = GetElementSafe<T>(name);
+        if (elem == null) throw new GuiElementLookupException(name, $"Couldn't find element '{name}' with type {typeof(T).Name}");
+
+        return elem;
+    }
+
+    public T? GetElementSafe<T>(string name) where T : class {
         var stack = new Stack<MNGuiElementContainer>();
         var mainContainer = GetMainContainerElement();
         if (mainContainer != null) stack.Push(mainContainer);
