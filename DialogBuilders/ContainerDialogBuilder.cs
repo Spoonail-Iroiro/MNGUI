@@ -40,12 +40,15 @@ public class ContainerDialogBuilder {
         var dialogBounds = ElementStdBounds.AutosizedMainDialog.WithAlignment(EnumDialogArea.CenterMiddle);
         dialogBounds.Name = "bounds-dialog";
 
-        var bgBounds = ElementBounds.Fill.WithFixedPadding(GuiStyle.ElementToDialogPadding);
+        // Padding to avoid container content clipped
+        var containerPadding = 2.0;
+
+        var bgBounds = ElementBounds.Fill.WithFixedPadding(GuiStyle.ElementToDialogPadding - containerPadding);
         bgBounds.Name = "bounds-bg";
         bgBounds.BothSizing = ElementSizing.FitToChildren;
 
         var containerBounds = bgBounds.ForkContainingChild();
-        containerBounds.WithFixedPadding(2.0);
+        containerBounds.WithFixedPadding(containerPadding);
         containerBounds.fixedY = GuiStyle.TitleBarHeight;
         containerBounds.BothSizing = ElementSizing.FitToChildren;
         containerBounds.Name = "bounds-container";
