@@ -64,6 +64,8 @@ public class StandardDialogController {
         if (ChildLayout is LayoutWithElementBounds lweb) {
             //container.Clear();
 
+            ChildLayout.Init();
+
             ChildLayout.Measure();
 
             //foreach (var elementInfo in ChildLayout.GetAllGuiElements()) {

@@ -57,6 +57,7 @@ public class ContainerDialogController {
         if (container == null) return;
 
         if (ChildLayout is LayoutWithElementBounds lweb) {
+            ChildLayout.Init();
 
             ChildLayout.Measure();
 
