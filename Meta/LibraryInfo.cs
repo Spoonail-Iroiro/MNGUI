@@ -4,5 +4,5 @@ using System.Linq;
 
 namespace MNGui.Meta;
 public static class LibraryInfo {
-    public static readonly Version Version = new Version(0, 4, 0);
+    public static readonly Version Version = new Version(0, 5, 0);
 }
