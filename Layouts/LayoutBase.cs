@@ -35,7 +35,7 @@ public abstract class LayoutBase {
     public SizeConstraint MinHeightConstraint { get; protected set; } = new();
 
     /// <summary>
-    /// Init elements, bounds or other data structures. They must be available after calling this.
+    /// Init elements, bounds or other data structures. They must be available after calling this. Recover initial state for layout, if necessary.
     /// </summary>
     public virtual void Init() {
 

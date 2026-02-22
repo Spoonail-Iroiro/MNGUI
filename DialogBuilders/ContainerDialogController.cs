@@ -6,6 +6,7 @@ using Vintagestory.API.Util;
 using MNGui.Extensions;
 using MNGui.GuiElements;
 using MNGui.Layouts;
+using MNGui.Exceptions;
 
 namespace MNGui.DialogBuilders;
 public class ContainerDialogController {
@@ -30,7 +31,14 @@ public class ContainerDialogController {
         return Composer.GetElement<MNGuiElementContainer>(ContainerDialogBuilder.MainContainerName);
     }
 
-    public T? GetElement<T>(string name) where T : class {
+    public T GetElement<T>(string name) where T : class {
+        var elem = GetElementSafe<T>(name);
+        if (elem == null) throw new GuiElementLookupException(name, $"Couldn't find element '{name}' with type {typeof(T).Name}");
+
+        return elem;
+    }
+
+    public T? GetElementSafe<T>(string name) where T : class {
         var stack = new Stack<MNGuiElementContainer>();
         var mainContainer = GetMainContainerElement();
         if (mainContainer != null) stack.Push(mainContainer);
@@ -57,6 +65,7 @@ public class ContainerDialogController {
         if (container == null) return;
 
         if (ChildLayout is LayoutWithElementBounds lweb) {
+            ChildLayout.Init();
 
             ChildLayout.Measure();
 
