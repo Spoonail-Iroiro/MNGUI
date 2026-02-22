@@ -53,7 +53,7 @@ public class MNGuiElementVerticalScrollbar : GuiElementScrollbar, ILayoutableEle
     }
 
     public void Init() {
-        // Set OffsetY to 0 temporary for layouting (will be recovered on ComposeElements)
+        // Set fixedOffsetY to 0 temporarily for layouting (will be recovered on ComposeElements)
         if (ContentBounds != null) {
             ContentBounds.fixedOffsetY = 0.0;
         }

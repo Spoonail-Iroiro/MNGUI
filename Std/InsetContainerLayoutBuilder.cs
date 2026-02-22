@@ -113,6 +113,11 @@ public class InsetContainerLayoutBuilder {
         return this;
     }
 
+    /// <summary>
+    /// Set if this layout has inset. Default: true. Also removes padding between inset and clip, if removePaddingIfDisabled == true (defaulet).
+    /// </summary>
+    /// <param name="enabled"></param>
+    /// <returns></returns>
     public InsetContainerLayoutBuilder WithInset(bool enabled, bool removePaddingIfDisabled = true) {
         isInsetEnabled = enabled;
 
@@ -123,7 +128,7 @@ public class InsetContainerLayoutBuilder {
     }
 
     /// <summary>
-    /// Set containe's padding. Default: 2.0. Mainly for preventing elements drawing outside of their bounds from being clippled slightly
+    /// Set container's padding. Default: 2.0. Mainly for preventing elements drawing outside of their bounds from being clippled slightly
     /// </summary>
     /// <param name="padding"></param>
     /// <returns></returns>
