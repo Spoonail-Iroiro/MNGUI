@@ -1,9 +1,7 @@
-﻿using System;
-using System.Diagnostics.CodeAnalysis;
-using Vintagestory.API.Client;
-using MNGui.Layouts;
+﻿using MNGui.Extensions;
 using MNGui.GuiElements;
-using MNGui.Extensions;
+using MNGui.Layouts;
+using Vintagestory.API.Client;
 
 namespace MNGui.DialogBuilders;
 public class ContainerDialogBuilder {
@@ -11,9 +9,9 @@ public class ContainerDialogBuilder {
     public static readonly string ScrollbarName = "scrollbar-containerdialogbuilder-main";
 
     public bool IsStandardCloseEnabled { get; private set; } = true;
-
-    // "root" layout must have ElementBounds for getting child of the MNGuiElementContainer
-    public LayoutWithElementBounds? ChildLayout { get; private set; }
+    public string? CustomDialogTitle { get; private set; }
+    public string? CustomDialogId { get; private set; }
+    public ElementBounds? CustomDialogBounds { get; private set; }
 
     public static MNGuiElementContainer? GetMainContainerElement(GuiComposer composer) {
         return composer.GetElement<MNGuiElementContainer>(MainContainerName);
@@ -22,22 +20,36 @@ public class ContainerDialogBuilder {
     public ContainerDialogBuilder() {
     }
 
-    public ContainerDialogBuilder WithStandardClose(bool enabled) {
-        IsStandardCloseEnabled = enabled;
+    public ContainerDialogBuilder WithoutStandardClose() {
+        IsStandardCloseEnabled = false;
         return this;
     }
 
-    [MemberNotNull(nameof(ChildLayout))]
-    public void SetChildLayout(LayoutWithElementBounds layout) {
-        ChildLayout = layout;
+    public ContainerDialogBuilder WithCustomDialogTitle(string dialogTitle) {
+        CustomDialogTitle = dialogTitle;
+        return this;
     }
 
-    public GuiComposer Layout(ICoreClientAPI capi, GuiDialogBlockEntity gui) {
-        return Layout(capi, gui, gui.GetType().Name + gui.BlockEntityPosition);
+    public ContainerDialogBuilder WithCustomDialogId(string dialogId) {
+        CustomDialogId = dialogId;
+        return this;
     }
 
-    public GuiComposer Layout(ICoreClientAPI capi, GuiDialogGeneric gui, string dialogId) {
-        var dialogBounds = ElementStdBounds.AutosizedMainDialog.WithAlignment(EnumDialogArea.CenterMiddle);
+    public ContainerDialogBuilder WithCustomDialogBounds(ElementBounds bounds) {
+        CustomDialogBounds = bounds;
+        return this;
+    }
+
+    public GuiComposer Build(ICoreClientAPI capi, LayoutWithElementBounds layout, GuiDialogBlockEntity gui) {
+        return Build(capi, layout, gui, CustomDialogId ?? gui.GetType().Name + gui.BlockEntityPosition);
+    }
+
+    public GuiComposer Build(ICoreClientAPI capi, LayoutWithElementBounds layout, GuiDialogGeneric gui) {
+        return Build(capi, layout, gui, CustomDialogId ?? gui.GetType().Name);
+    }
+
+    GuiComposer Build(ICoreClientAPI capi, LayoutWithElementBounds layout, GuiDialogGeneric gui, string dialogId) {
+        var dialogBounds = CustomDialogBounds ?? ElementStdBounds.AutosizedMainDialog.WithAlignment(EnumDialogArea.CenterMiddle);
         dialogBounds.Name = "bounds-dialog";
 
         // Padding to avoid container content clipped
@@ -56,32 +68,29 @@ public class ContainerDialogBuilder {
         var composer = capi.Gui.CreateCompo(dialogId, dialogBounds);
         composer
             .AddShadedDialogBG(bgBounds)
-            .AddDialogTitleBar(gui.DialogTitle, () => { if (IsStandardCloseEnabled) gui.TryClose(); })
+            .AddDialogTitleBar(CustomDialogTitle ?? gui.DialogTitle, () => { if (IsStandardCloseEnabled) gui.TryClose(); })
             .BeginChildElements(bgBounds) // Begin bgBounds child
                 .AddInteractiveElement(new MNGuiElementContainer(capi, containerBounds), MainContainerName)
             .EndChildElements();
 
         var container = composer.GetElement<MNGuiElementContainer>(MainContainerName)!;
 
-        if (ChildLayout == null) throw new InvalidOperationException($"{typeof(StandardDialogBuilder).Name} can't generate dialog without ChildLayout!");
+        layout.Init();
 
-        ChildLayout.Init();
+        layout.Measure();
 
-        ChildLayout.Measure();
-
-        foreach (var elementInfo in ChildLayout.GetAllGuiElements()) {
+        foreach (var elementInfo in layout.GetAllGuiElements()) {
             container.Add(elementInfo.Element, elementInfo.Name);
         }
 
-        container.SetChildBound(ChildLayout.Bounds);
+        container.SetChildBound(layout.Bounds);
 
         container.Bounds.CalcWorldBounds();
 
-        ChildLayout.ArrangeWithMinSize();
+        layout.ArrangeWithMinSize();
 
         composer.Compose();
 
         return composer;
     }
-
 }
