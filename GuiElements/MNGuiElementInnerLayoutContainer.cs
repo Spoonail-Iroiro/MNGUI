@@ -73,7 +73,7 @@ public class MNGuiElementInnerLayoutContainer : MNGuiElementContainer, ILayoutab
         NotifyRelayoutRequired();
     }
 
-    protected void ResolvePendingNewLayout() {
+    public void ResolvePendingNewLayout() {
         if (PendingNewLayout != null) {
             // To prevent discarded, saving here
             var callback = PendingCallbackRelayouted;

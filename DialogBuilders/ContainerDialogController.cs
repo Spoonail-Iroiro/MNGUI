@@ -1,12 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using Vintagestory.API.Client;
-using Vintagestory.API.Util;
+using MNGui.Exceptions;
 using MNGui.Extensions;
 using MNGui.GuiElements;
 using MNGui.Layouts;
-using MNGui.Exceptions;
+using Vintagestory.API.Client;
+using Vintagestory.API.Util;
 
 namespace MNGui.DialogBuilders;
 public class ContainerDialogController {
@@ -15,6 +14,9 @@ public class ContainerDialogController {
     public LayoutBase ChildLayout { get; protected set; }
 
     public GuiComposer Composer { get; protected set; }
+
+    // Is pending recompose, workround for broken layout after repeated Recompose?
+    protected bool pendingRecompose = false;
 
     public ContainerDialogController(ICoreClientAPI capi, GuiComposer composer, LayoutBase childLayout, bool isRoot = true) {
         this.capi = capi;
@@ -73,9 +75,48 @@ public class ContainerDialogController {
 
             lweb.ArrangeWithMinSize();
 
-            Composer.ReCompose();
+            if (!pendingRecompose) {
+                Composer.ReCompose();
+            }
         }
     }
 
+    public LayoutInitializeContext StartLayoutInitializeContext() {
+        return new LayoutInitializeContext(this);
+    }
 
+    protected void ResolvePendingLayoutImmediatelyAll() {
+        var stack = new Stack<MNGuiElementContainer>();
+        var mainContainer = GetMainContainerElement();
+        if (mainContainer != null) stack.Push(mainContainer);
+        while (stack.Count > 0) {
+            var container = stack.Pop();
+            if (container is MNGuiElementInnerLayoutContainer innerContainer) {
+                innerContainer.ResolvePendingNewLayout();
+            }
+
+            foreach (var elem in container.Elements) {
+                if (elem is MNGuiElementContainer childContainer) {
+                    stack.Push(childContainer);
+                }
+            }
+        }
+    }
+
+    public class LayoutInitializeContext : IDisposable {
+        ContainerDialogController dialogController;
+        public LayoutInitializeContext(ContainerDialogController dialogController) {
+            this.dialogController = dialogController;
+            dialogController.pendingRecompose = true;
+        }
+
+        public void Dispose() {
+            this.dialogController.ResolvePendingLayoutImmediatelyAll();
+
+            dialogController.Composer.ReCompose();
+
+            dialogController.pendingRecompose = false;
+        }
+    }
 }
+
