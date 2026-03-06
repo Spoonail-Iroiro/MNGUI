@@ -1,12 +1,11 @@
-﻿using Cairo;
+﻿using System;
+using System.Diagnostics.CodeAnalysis;
+using Cairo;
 using MNGui.Extensions;
-using MNGui.GuiElements.Layout;
 using MNGui.Layouts;
 using MNGui.Layouts.Extensions;
 using MNGui.Layouts.Interfaces;
-using System.Diagnostics.CodeAnalysis;
 using Vintagestory.API.Client;
-using Vintagestory.API.Common;
 
 namespace MNGui.GuiElements;
 
@@ -21,6 +20,7 @@ public class MNGuiElementInnerLayoutContainer : MNGuiElementContainer, ILayoutab
     protected LayoutWithElementBounds ChildLayout { get; set; }
 
     protected LayoutWithElementBounds? PendingNewLayout { get; set; }
+    protected Action<MNGuiElementInnerLayoutContainer>? PendingCallbackRelayouted { get; set; }
 
     /// Default layout Must not need to be disposed, since it might remain after container's Dispose
     protected LayoutWithElementBounds DefaultLayout => new VerticalLayout(api).Add(new GuiElementDummy(api, ElementBounds.FixedSize(1, 1)), "temp");
@@ -38,9 +38,10 @@ public class MNGuiElementInnerLayoutContainer : MNGuiElementContainer, ILayoutab
     /// Reusing layout is not recommended since this discards all.
     /// LayoutApplied will be notified on actual apply.
     /// </remarks>
-    public void SetNewLayout(LayoutWithElementBounds newLayout) {
+    public void SetNewLayout(LayoutWithElementBounds newLayout, Action<MNGuiElementInnerLayoutContainer>? callbackRelayouted = null) {
         // Will be actually applied when ResolvePendingNewLayout is called
         PendingNewLayout = newLayout;
+        PendingCallbackRelayouted = callbackRelayouted;
         // Hacky, ensuring resolution of layout outside of event handler
         api.Event.RegisterCallback(dt => ResolvePendingNewLayout(), 0);
     }
@@ -74,8 +75,12 @@ public class MNGuiElementInnerLayoutContainer : MNGuiElementContainer, ILayoutab
 
     protected void ResolvePendingNewLayout() {
         if (PendingNewLayout != null) {
+            // To prevent discarded, saving here
+            var callback = PendingCallbackRelayouted;
             ApplyNewLayoutImmediately(PendingNewLayout);
+            callback?.Invoke(this);
             PendingNewLayout = null;
+            PendingCallbackRelayouted = null;
         }
     }
 
@@ -83,6 +88,7 @@ public class MNGuiElementInnerLayoutContainer : MNGuiElementContainer, ILayoutab
         base.ClearContent();
         ChildLayout = DefaultLayout;
         PendingNewLayout = null;
+        PendingCallbackRelayouted = null;
         // Tied actions are not content, so not cleared here
     }
 
