@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
+﻿using System.Linq;
 using MNGui.GuiElements;
 using MNGui.Layouts;
 using MNGui.Layouts.Extensions;
@@ -16,7 +14,8 @@ public enum BoxSide {
 public enum InsetContainerSizePolicy {
     FitToChildren,
     FitToChildrenRange,
-    Fixed
+    Fixed,
+    Stretch
 }
 
 public class InsetContainerLayoutBuilder {
@@ -74,16 +73,30 @@ public class InsetContainerLayoutBuilder {
     }
 
     // Currently only max is supported
-    public InsetContainerLayoutBuilder WithSizeFitToChildrenRange(BoxSide side, double MaxLength) {
+    public InsetContainerLayoutBuilder WithSizeFitToChildrenRange(BoxSide side, double maxLength) {
         if (side == BoxSide.Horizontal) {
             horizontalSizePolicy = InsetContainerSizePolicy.FitToChildrenRange;
             minWidth = 0.0;
-            maxWidth = MaxLength;
+            maxWidth = maxLength;
         }
         else {
             verticalSizePolicy = InsetContainerSizePolicy.FitToChildrenRange;
             minHeight = 0.0;
-            maxHeight = MaxLength;
+            maxHeight = maxLength;
+        }
+        return this;
+    }
+
+    public InsetContainerLayoutBuilder WithSizeStretch(BoxSide side, double minLength) {
+        if (side == BoxSide.Horizontal) {
+            horizontalSizePolicy = InsetContainerSizePolicy.Stretch;
+            minWidth = minLength;
+            maxWidth = double.MaxValue;
+        }
+        else {
+            verticalSizePolicy = InsetContainerSizePolicy.Stretch;
+            minHeight = minLength;
+            maxHeight = double.MaxValue;
         }
         return this;
     }
@@ -137,13 +150,18 @@ public class InsetContainerLayoutBuilder {
         return this;
     }
 
+    public readonly static InsetContainerSizePolicy[] policiesBoundsFitToChildren = [
+            InsetContainerSizePolicy.FitToChildren,
+            InsetContainerSizePolicy.FitToChildrenRange
+        ];
+
     WrapperElementLayout CreateClipStartLayouts() {
         var clipBounds = ElementBounds.FixedSize(minWidth, minHeight);
         var clipStartLayout = new WrapperElementLayout(isClipEnabled ? new MNGuiElementClipStart(capi, clipBounds) : new GuiElementDummy(capi, clipBounds));
-        if (horizontalSizePolicy != InsetContainerSizePolicy.Fixed) {
+        if (policiesBoundsFitToChildren.Contains(horizontalSizePolicy)) {
             clipBounds.horizontalSizing = ElementSizing.FitToChildren;
         }
-        if (verticalSizePolicy != InsetContainerSizePolicy.Fixed) {
+        if (policiesBoundsFitToChildren.Contains(verticalSizePolicy)) {
             clipBounds.verticalSizing = ElementSizing.FitToChildren;
         }
         if (horizontalSizePolicy == InsetContainerSizePolicy.FitToChildrenRange) {
@@ -177,6 +195,29 @@ public class InsetContainerLayoutBuilder {
 
         var clipStartLayout = CreateClipStartLayouts();
         var clipEndLayout = isClipEnabled ? new WrapperElementLayout(new MNGuiElementClipEnd(capi)) : new ElementLayout(new GuiElementDummy(capi, ElementBounds.FixedSize(1, 1)));
+
+        LayoutWithElementBounds[] layoutsToBeStretched = [
+            insetLayout,
+            clipParentLayout,
+            containerLayout,
+            clipStartLayout
+        ];
+
+        if (horizontalSizePolicy == InsetContainerSizePolicy.Stretch) {
+            foreach (var layout in layoutsToBeStretched) {
+                layout.WithHorizontalSizePolicy(SizePolicy.Stretch);
+            }
+            //insetLayout.WithHorizontalSizePolicy(SizePolicy.Stretch);
+            //clipParentLayout.WithHorizontalSizePolicy(SizePolicy.Stretch);
+            //containerLayout.WithHorizontalSizePolicy(SizePolicy.Stretch);
+            //clipStartLayout.WithHorizontalSizePolicy(SizePolicy.Stretch);
+        }
+
+        if (verticalSizePolicy == InsetContainerSizePolicy.Stretch) {
+            foreach (var layout in layoutsToBeStretched) {
+                layout.WithVerticalSizePolicy(SizePolicy.Stretch);
+            }
+        }
 
         rowLayout
             .Add(
