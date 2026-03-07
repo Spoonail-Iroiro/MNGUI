@@ -15,8 +15,14 @@ public class ContainerDialogController {
 
     public GuiComposer Composer { get; protected set; }
 
-    // Is pending recompose, workround for broken layout after repeated Recompose?
-    protected bool pendingRecompose = false;
+    // ReCompose is deferred by a context
+    protected bool isRecomposeDeferredByContext = false;
+
+    // True while this controller is executing ReCompose
+    protected bool isRecomposing = false;
+
+    // A ReCompose request occurred during ReCompose
+    protected bool isRecomposeRequested = false;
 
     public ContainerDialogController(ICoreClientAPI capi, GuiComposer composer, LayoutBase childLayout, bool isRoot = true) {
         this.capi = capi;
@@ -62,6 +68,8 @@ public class ContainerDialogController {
         return null;
     }
 
+    int recomposeCountMax = 100;
+
     public void OnBoundsUpdated() {
         var container = GetMainContainerElement();
         if (container == null) return;
@@ -75,9 +83,32 @@ public class ContainerDialogController {
 
             lweb.ArrangeWithMinSize();
 
-            if (!pendingRecompose) {
-                Composer.ReCompose();
+            if (!isRecomposeDeferredByContext) {
+                SerializedRecompose();
             }
+        }
+    }
+
+    protected void SerializedRecompose() {
+        if (isRecomposing) {
+            isRecomposeRequested = true;
+            return;
+        }
+
+        isRecomposing = true;
+        try {
+            var i = 0;
+
+            do {
+                if (i++ >= recomposeCountMax) {
+                    throw new InvalidOperationException($"Infinite ReCompose detected!");
+                }
+                isRecomposeRequested = false;
+                Composer.ReCompose();
+            } while (isRecomposeRequested);
+        }
+        finally {
+            isRecomposing = false;
         }
     }
 
@@ -107,15 +138,13 @@ public class ContainerDialogController {
         ContainerDialogController dialogController;
         public LayoutInitializeContext(ContainerDialogController dialogController) {
             this.dialogController = dialogController;
-            dialogController.pendingRecompose = true;
+            dialogController.isRecomposeDeferredByContext = true;
         }
 
         public void Dispose() {
             this.dialogController.ResolvePendingLayoutImmediatelyAll();
-
-            dialogController.Composer.ReCompose();
-
-            dialogController.pendingRecompose = false;
+            dialogController.isRecomposeDeferredByContext = false;
+            dialogController.SerializedRecompose();
         }
     }
 }

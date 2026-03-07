@@ -110,7 +110,8 @@ public class MNGuiElementInnerLayoutContainer : MNGuiElementContainer, ILayoutab
     }
 
     public override void ComposeElements(Context ctx, ImageSurface surface) {
-        ResolvePendingNewLayout();
+        // Shouldn't do that, since it might cause recursive ReCompose 
+        //ResolvePendingNewLayout();
         base.ComposeElements(ctx, surface);
     }
 
